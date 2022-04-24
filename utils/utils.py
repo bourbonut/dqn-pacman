@@ -1,9 +1,9 @@
 try:
     import cv2
+    from .start import PATH_VIDEO
 except Exception as e:
     # print(e)
     pass
-from .start import PATH_VIDEO
 
 REWARDS = {
     "default": -0.2,
@@ -32,8 +32,6 @@ def save_run(one_game):
 
 
 def transform_reward(reward):
-    return min(reward_, 1)
-    # reward = REWARDS["default"]  # isreversed(last_action, action_)
-    # if reward_ not in REWARDS:
-    #     print(reward_)
-    # reward += REWARDS[reward_] if reward_ in REWARDS else reward_ / 10
+    return min(reward, 1)
+    # r = REWARDS["default"]  # isreversed(last_action, action_)
+    # r += REWARDS[reward] if reward in REWARDS else reward / 10

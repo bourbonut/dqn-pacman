@@ -22,7 +22,7 @@ while True:
     jump_dead_step = False
 
     # Avoid beginning steps of the game
-    for i_step in range(AVOIDED_STEPS - 5):
+    for i_step in range(AVOIDED_STEPS):
         obs, reward, done, info = env.step(0)
 
     observations = init_obs(env)
@@ -57,7 +57,7 @@ while True:
 
         last_action = action_
         got_reward = got_reward or reward != 0
-        display.add_reward(reward)
+        display.data.rewards.append(reward)
         reward = torch.tensor([reward], device=device)
 
         next_state = preprocessing_observation(observations, obs)
@@ -73,7 +73,7 @@ while True:
 
         display.show()
         if done:
-            display.successes += info["lives"] > 0
+            display.data.successes += info["lives"] > 0
             break
         if jump_dead_step:
             for i_dead in range(DEAD_STEPS):
@@ -88,7 +88,7 @@ while True:
         torch.save(target_DQN.state_dict(), PATH_MODELS / f"target-model-{episodes}.pt")
         display.save()
 
-    display.new_episode()
+    display.data.round()
 
 torch.save(policy_DQN.state_dict(), PATH_MODELS / f"policy-model-final.pt")
 torch.save(target_DQN.state_dict(), PATH_MODELS / f"target-model-final.pt")

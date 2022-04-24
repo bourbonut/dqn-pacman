@@ -12,7 +12,7 @@ class DecisionMaker:
         self.steps_done += 1
         with torch.no_grad():
             q_values = policy_DQN(state)
-        display.add_q_value(q_values.max(1)[0].item())
+        display.data.q_values.append(q_values.max(1)[0].item())
         if sample > eps_threshold:
             # Optimal action
             return q_values.max(1)[1].view(1, 1)

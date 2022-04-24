@@ -69,7 +69,7 @@ def optimize_model(policy_DQN, target_DQN, memory, optimizer, display, learn_cou
 
     criterion = torch.nn.SmoothL1Loss()
     loss = criterion(predicted_targets, labels).to(device)
-    display.add_loss(loss.item())
+    display.data.losses.append(loss.item())
 
     optimizer.zero_grad()
     loss.backward()

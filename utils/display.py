@@ -86,7 +86,7 @@ class Display:
     def __init__(self, dynamic=True, image=False):
         self.data = Structure()
         if dynamic:  # To display the game and progression of the network's performance
-            self.fig = plt.figure(figsize=(20, 8))
+            self.fig = plt.figure(figsize=(16, 8))
             m = [2, 2, 2, 2, 2, 2, 1]
             n = [1, 2, 3, 5, 6, 7, 4]
             self.axis = [self.fig.add_subplot(i, 4, j) for i, j in zip(m, n)]
@@ -95,33 +95,36 @@ class Display:
             self.fig, self.axis = plt.subplots(2, 3, figsize=(16, 10))
             self.fig.tight_layout()
             self.axis = self.axis.flatten()
-        self.save = self.save_all if image else self.save_data
         self.show = (lambda: self._show()) if dynamic else (lambda: None)
-        self.save = (lambda: None) if dynamic else (lambda: self._save())
+        self.save = (lambda: None) if dynamic else (lambda: self._save(image))
 
     def update_axis(self, observation=False):
-        for axis, data in (self.axis[:-1], self.data):
+        for axis, data in zip(self.axis[:-1], self.data):
             axis.plot(range(len(data)), data)
         for label, axis in zip(self.Y_LABELS, self.axis[:-1]):
             axis.set_ylabel(label)
         if observation:
             self.axis[6].imshow(self.obs)
-        self.fig.suptitle(f"Episode {self.data.ep} | Total of successes = {self.successes}")
+        episodes = self.data.ep
+        successes = self.data.successes
+        self.fig.suptitle(f"Episode {episodes} | Total of successes = {successes}")
 
     def _show(self):
         plt.ion()
         self.update_axis(True)
+        self.fig.tight_layout()
         plt.draw()
         plt.pause(0.0001)
         for axis in self.axis:
             axis.cla()
 
-    def _save(self):
+    def _save(self, image=False):
         """Save data in `pickle` file and an image"""
-        self.update_axis()
-        self.fig.tight_layout()
-        plt.savefig(PATH_PLOTS / f"episode-{self.data.ep}.png")
-        print(f"Figure {self.data.ep} saved.")
-        for axis in self.axis:
-            axis.cla()
+        if image:
+            self.update_axis()
+            self.fig.tight_layout()
+            plt.savefig(PATH_PLOTS / f"episode-{self.data.ep}.png")
+            print(f"Figure {self.data.ep} saved.")
+            for axis in self.axis:
+                axis.cla()
         self.data.save()
