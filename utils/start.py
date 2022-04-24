@@ -2,7 +2,7 @@ from pathlib import Path
 
 ABS_PATH = Path().absolute()
 RESULTS_PATH = ABS_PATH / "results"
-SUBFOLDERS = ["models", "plots", "recorded-data"]
+SUBFOLDERS = ["models", "plots", "recorded-data"]  # + ["best-run"]
 
 if not (RESULTS_PATH.exists()):
     RESULTS_PATH.mkdir()

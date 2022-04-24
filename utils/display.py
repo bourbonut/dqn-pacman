@@ -85,7 +85,6 @@ class Display:
 
     def __init__(self, dynamic=True, image=False):
         self.data = Structure()
-        self.dynamic = dynamic
         if dynamic:  # To display the game and progression of the network's performance
             self.fig = plt.figure(figsize=(20, 8))
             m = [2, 2, 2, 2, 2, 2, 1]
@@ -97,6 +96,8 @@ class Display:
             self.fig.tight_layout()
             self.axis = self.axis.flatten()
         self.save = self.save_all if image else self.save_data
+        self.show = (lambda: self._show()) if dynamic else (lambda: None)
+        self.save = (lambda: None) if dynamic else (lambda: self._save())
 
     def update_axis(self, observation=False):
         for axis, data in (self.axis[:-1], self.data):
@@ -107,7 +108,7 @@ class Display:
             self.axis[6].imshow(self.obs)
         self.fig.suptitle(f"Episode {self.data.ep} | Total of successes = {self.successes}")
 
-    def show(self):
+    def _show(self):
         plt.ion()
         self.update_axis(True)
         plt.draw()
@@ -115,7 +116,7 @@ class Display:
         for axis in self.axis:
             axis.cla()
 
-    def save(self):
+    def _save(self):
         """Save data in `pickle` file and an image"""
         self.update_axis()
         self.fig.tight_layout()

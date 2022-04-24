@@ -49,3 +49,7 @@ def preprocessing_observation(observations, new_obs):
     observations[0, :, :] = unit_prepr_obs(new_obs)
     screen = torch.from_numpy(observations)
     return screen.unsqueeze(0)
+
+
+def init_obs(env):
+    return np.stack([unit_prepr_obs(env.step(0)[0]) for i_step in range(4)][::-1])

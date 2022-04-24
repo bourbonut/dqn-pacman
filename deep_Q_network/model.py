@@ -73,8 +73,8 @@ def optimize_model(policy_DQN, target_DQN, memory, optimizer, display, learn_cou
 
     optimizer.zero_grad()
     loss.backward()
-    # for param in policy_DQN.parameters():
-    #     param.grad.data.clamp_(-1, 1)
+    for param in policy_DQN.parameters():
+        param.grad.data.clamp_(-1, 1)
     optimizer.step()
 
     # # Softmax update
