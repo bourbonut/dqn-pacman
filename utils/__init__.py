@@ -6,15 +6,15 @@ from .display import Display
 if args.dynamic:
     print("Dynamic display (no save during execution)")
 elif args.image:
-    print(
-        "Saves during execution in `results/models` folder,"
-        + " `results/recorded-data` folder"
-        + " and `results/plots`."
-    )
+    message = "Saves during execution :\n"
+    message += "\t       Models : {}".format(PATH_MODELS) + "\n"
+    message += "\tRecorded data : {}".format(PATH_DATA) + "\n"
+    message += "\t        Plots : {}".format(PATH_PLOTS)
+    print(message)
 else:
-    print(
-        "Saves during execution in `results/models`"
-        + " folder and `results/recorded-data` folder"
-    )
+    message = "Saves during execution :\n"
+    message += "\t       Models : {}".format(PATH_MODELS) + "\n"
+    message += "\tRecorded data : {}".format(PATH_DATA)
+    print(message)
 
 display = Display(args.dynamic, args.image)
