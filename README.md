@@ -31,7 +31,9 @@ python setup.py install
 
 ## For usage
 
-### Train the agent
+### Training part
+
+#### Train the agent
 
 In `deep_Q_network` folder, you can find the file `parameters.py` where parameters are set. After checking them, you can run the training with the following command line
 
@@ -39,7 +41,7 @@ In `deep_Q_network` folder, you can find the file `parameters.py` where paramete
 python main.py
 ```
 
-### Train and save evolution step by step (a lot of memory)
+#### Train and save evolution step by step (a lot of memory)
 
 To save the evolution step by step, simply run:
 ```sh
@@ -48,7 +50,7 @@ python main.py --image
 
 ![example-result](./docs/example-result.png)
 
-### Dynamic display (slow)
+#### Dynamic display (slow)
 
 This mode is useful when you want to see how the agent reacts and interacts with his environment.
 
@@ -58,6 +60,26 @@ python main.py --dynamic
 ```
 
 ![dashboard](./docs/board.png)
+
+### Evaluation
+
+#### Location of saved data
+
+When you run `main.py`, it will automatically create a folder `results` in where all results will be stored.
+
+#### Usage
+
+By default, the evaluation from `eval.py` is on the most recent **folder** and **episode**.
+To specify them :
+```sh
+python eval.py -e 120 --path ./results/mytrainingfolder
+```
+You can find different flags to get what you want :
+- by default, it saves a plot with Q values, rewards and the last losses of desired episode.
+- `--reward`, it saves rewards with a pseudo moving average
+- `--qvalue`, it saves Q values with a pseudo moving average
+- `--record`, it records the agent interaction
+- `-a` or `--all`, it records the agent interaction and save plots
 
 
 ## Structure of the code

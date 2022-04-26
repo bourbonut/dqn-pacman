@@ -11,7 +11,7 @@ setup(
         "torchaudio>=0.11.0",
         "torchvision>=0.12.0",
     ],
-    license="GNU LGPL v3",
+    license="GNU GPL v3",
     author="Benjamin Bourbon",
     author_email="ben.bourbon06@gmail.com",
     description="Deep Q-Network on the Atari Game Ms-Pacman",
