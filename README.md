@@ -123,3 +123,7 @@ You can find different flags to get what you want :
 ├── README.md
 └── setup.py
 ```
+
+# Additional information
+
+For more information, you can find my [report](./docs/report.pdf).
