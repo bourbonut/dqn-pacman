@@ -4,7 +4,10 @@ import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Preprocessing constant
-PACMAN_COLOR = 210 + 164 + 74  # Use Paint or another tool to find the color
+WALL_COLOR = [111, 111, 228]
+BACKGROUND = [136, 28, 0]
+PACMAN_COLOR = [74, 164, 210]
+
 
 # Reinforcement learning constants
 BATCH_SIZE = 32
