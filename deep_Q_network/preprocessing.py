@@ -16,7 +16,18 @@ def shrink_cell(cell):
     counter = Counter(map(tuple, reshaped_cell))
     max_value = max(counter.values())
     colors = [key for key in counter if counter[key] == max_value]
-    return max(colors, key=lambda x: np.sum(x))
+    result = max(colors, key=lambda x: sum(x))
+    return result
+
+
+def change_color(array, color, value, diff=True):
+    r, g, b = color
+    red, green, blue = array[:, :, 0], array[:, :, 1], array[:, :, 2]
+    if diff:
+        mask = (red != r) & (green != g) & (blue != b)
+    else:
+        mask = (red == r) | (green == g) | (blue == b)
+    array[:, :, :3][mask] = value
 
 
 def preprocess_observation(obs):
@@ -24,15 +35,16 @@ def preprocess_observation(obs):
     extended_img = extend_walls(trimmed_img)
     shrink = lambda i, j: shrink_cell(extended_img[i : i + 4, j : j + 4])
     shrunk_img = np.array([[shrink(4 * i, 4 * j) for j in range(40)] for i in range(44)])
-    canvas = shrunk_img
+    canvas = shrunk_img.astype(np.uint8)
     pills_walls = canvas.copy()
-    pills_walls[canvas != WALL_COLOR] = 0
+    change_color(pills_walls, WALL_COLOR, [0, 0, 0])
     pacman_monsters = canvas.copy()
-    pacman_monsters[(canvas == WALL_COLOR) | (canvas == BACKGROUND)] = 0
+    change_color(pacman_monsters, WALL_COLOR, [0, 0, 0], False)
+    change_color(pacman_monsters, BACKGROUND, [0, 0, 0], False)
     pacman = pacman_monsters.copy()
     monsters = pacman_monsters.copy()
-    pacman[pacman_monsters != PACMAN_COLOR] = 0
-    monsters[pacman_monsters == PACMAN_COLOR] = 0
+    change_color(pacman, PACMAN_COLOR, [0, 0, 0])
+    change_color(monsters, PACMAN_COLOR, [0, 0, 0], False)
     return [pills_walls, pacman, monsters]
 
 
@@ -60,4 +72,7 @@ def preprocess_state(old_state, current_state):
     v_pacman = identify_movement(old_state[1], current_state[1])
     v_monsters = identify_movement(old_state[2], current_state[2])
     gray = lambda state: cv2.cvtColor(state.astype(np.uint8), cv2.COLOR_RGB2GRAY)
-    return np.stack([[gray(s) for s in current_state] + v_pacman + v_monsters])
+    # current_state[1] = np.where(current_state[1] > 0.5, 1, 0)
+    observation = np.stack([[gray(s) for s in current_state] + v_pacman + v_monsters])
+    screen = torch.from_numpy(observation[0].astype(np.float32))
+    return screen.unsqueeze(0)

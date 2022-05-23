@@ -4,9 +4,9 @@ import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Preprocessing constant
-WALL_COLOR = [111, 111, 228]
-BACKGROUND = [136, 28, 0]
-PACMAN_COLOR = [74, 164, 210]
+WALL_COLOR = [228, 111, 111]
+BACKGROUND = [0, 28, 136]
+PACMAN_COLOR = [210, 164, 74]
 
 
 # Reinforcement learning constants
@@ -19,8 +19,6 @@ TARGET_UPDATE = 9_000
 REPLAY_MEMORY_SIZE = 20_000
 
 # Environment constants
-HEIGHT = 88
-WIDTH = 80
 N_ACTIONS = 9  # env.action_space.n
 AVOIDED_STEPS = 88  # At the beginning, there is a period of time where the game doesn't allowed the player to move Pacman
 DEAD_STEPS = 36  # frames to avoid when the agent dies
