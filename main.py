@@ -16,22 +16,23 @@ while True:
     if dmaker.steps_done > MAX_FRAMES:
         break
     episodes += 1
+    print(episodes)
 
     obs = env.reset()
     lives = 3
     jump_dead_step = False
+    old_state = None
 
     # Avoid beginning steps of the game
     for i_step in range(AVOIDED_STEPS):
         obs, reward, done, info = env.step(0)
+        old_state = preprocess_observation(obs)
 
-    observations = init_obs(env)
     obs, reward, done, info = env.step(0)
-    state = preprocessing_observation(observations, obs)
+    current_state = preprocess_observation(obs)
+    state = preprocess_state(old_state, current_state)
 
     got_reward = False
-
-    # one_game.clear()
 
     no_move_count = 0
     while True:
@@ -42,8 +43,9 @@ while True:
         action_ = action.item()
 
         obs, reward_, done, info = env.step(action_)
+        old_state = current_state
         display.obs = obs
-        # one_game.append(obs)
+        current_state = preprocess_observation(obs)
         reward = transform_reward(reward_)
 
         if info["lives"] < lives:
@@ -60,7 +62,7 @@ while True:
         display.data.rewards.append(reward)
         reward = torch.tensor([reward], device=device)
 
-        next_state = preprocessing_observation(observations, obs)
+        next_state = preprocess_state(old_state, current_state)
 
         if got_reward:
             memory.push(state, action, reward, next_state, done)

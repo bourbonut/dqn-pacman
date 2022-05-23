@@ -108,7 +108,7 @@ def record(ep):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    agent = DQN(HEIGHT, WIDTH, N_ACTIONS).to(device)
+    agent = DQN(N_ACTIONS).to(device)
 
     path_model = WORKING_DIRECTORY / "models" / f"policy-model-{ep}.pt"
     agent.load_state_dict(torch.load(str(path_model), map_location=device))
@@ -121,16 +121,18 @@ def record(ep):
     bin_loader = cv2.VideoWriter_fourcc(*"DIVX")
     out = cv2.VideoWriter(str(path_video), bin_loader, 15, frameSize)
 
+    old_state = None
     # Avoid beginning steps of the game
     for i_step in range(AVOIDED_STEPS):
         obs, reward, done, info = env.step(0)
 
-    observations = init_obs(env)
+    old_state = preprocess_observation(obs)
     obs, reward, done, info = env.step(0)
+    current_state = preprocess_observation(obs)
     out.write(cv2.cvtColor(obs, cv2.COLOR_RGB2BGR))
 
     while True:
-        state = preprocessing_observation(observations, obs)
+        state = preprocess_state(old_state, current_state)
         sample = random.random()
         eps_threshold = EPS_MIN
         with torch.no_grad():
@@ -141,7 +143,9 @@ def record(ep):
             random_action = [[random.randrange(N_ACTIONS)]]
             action = torch.tensor(random_action, device=device, dtype=torch.long)
 
+        old_state = current_state
         obs, reward, done, info = env.step(action)
+        current_state = preprocess_observation(obs)
         out.write(cv2.cvtColor(obs, cv2.COLOR_RGB2BGR))
         if done:
             break
