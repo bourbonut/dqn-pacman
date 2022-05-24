@@ -1,5 +1,5 @@
 import numpy as np
-import torch
+import torch, cv2
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -7,7 +7,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 WALL_COLOR = [228, 111, 111]
 BACKGROUND = [0, 28, 136]
 PACMAN_COLOR = [210, 164, 74]
-
+# tonumpy = lambda color: np.array([[color]], dtype=np.uint8)
+# togray = lambda color: cv2.cvtColor(tonumpy(color), cv2.COLOR_RGB2GRAY)[0][0]
+# WALL_COLOR_GRAY = togray(WALL_COLOR)
+# BACKGROUND_GRAY = togray(BACKGROUND)
+# PACMAN_COLOR_GRAY = togray(PACMAN_COLOR)
 
 # Reinforcement learning constants
 BATCH_SIZE = 32

@@ -33,9 +33,9 @@ def change_color(array, color, value, diff=True):
 def preprocess_observation(obs):
     trimmed_img = obs[1:171]
     extended_img = extend_walls(trimmed_img)
-    shrink = lambda i, j: shrink_cell(extended_img[i : i + 4, j : j + 4])
-    shrunk_img = np.array([[shrink(4 * i, 4 * j) for j in range(40)] for i in range(44)])
-    canvas = shrunk_img.astype(np.uint8)
+    # shrink = lambda i, j: shrink_cell(extended_img[i : i + 4, j : j + 4])
+    # shrunk_img = np.array([[shrink(4 * i, 4 * j) for j in range(40)] for i in range(44)])
+    canvas = extended_img  # shrunk_img.astype(np.uint8)
     pills_walls = canvas.copy()
     change_color(pills_walls, WALL_COLOR, [0, 0, 0])
     pacman_monsters = canvas.copy()
@@ -45,7 +45,8 @@ def preprocess_observation(obs):
     monsters = pacman_monsters.copy()
     change_color(pacman, PACMAN_COLOR, [0, 0, 0])
     change_color(monsters, PACMAN_COLOR, [0, 0, 0], False)
-    return [pills_walls, pacman, monsters]
+    # return [shrunk_img(x) for x in (pills_walls, pacman, monsters)]
+    return [pills_walls[1::4, 1::4], pacman[1::4, 1::4], monsters[1::4, 1::4]]
 
 
 def identify_movement(old, current):
