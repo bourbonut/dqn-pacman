@@ -46,7 +46,7 @@ class Structure:
         yield self.q_values._mean
         yield self.rewards._raw
         yield self.rewards._total
-        yield self.rewards._total
+        yield self.q_values._total
 
     def round(self):
         self.ep += 1
