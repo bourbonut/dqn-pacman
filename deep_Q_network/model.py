@@ -8,7 +8,7 @@ from .parameters import BATCH_SIZE, DISCOUNT_RATE, TAU, device
 
 class DQN(nn.Module):
 
-    CONV_N_MAPS = [7, 64, 64]
+    CONV_N_MAPS = [3, 64, 64]
     CONV_KERNEL_SIZES = [(4, 4), (2, 2)]
     CONV_STRIDES = [2, 2]
     CONV_PADDINGS = [2, 0]

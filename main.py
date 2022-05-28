@@ -26,11 +26,11 @@ while True:
     # Avoid beginning steps of the game
     for i_step in range(AVOIDED_STEPS):
         obs, reward, done, info = env.step(0)
-        old_state = preprocess_observation(obs)
 
+    # old_state = preprocess_observation(obs)
     obs, reward, done, info = env.step(0)
     current_state = preprocess_observation(obs)
-    state = preprocess_state(old_state, current_state)
+    state = preprocess_state(None, current_state)
 
     got_reward = False
 
@@ -62,7 +62,7 @@ while True:
         display.data.rewards.append(reward)
         reward = torch.tensor([reward], device=device)
 
-        next_state = preprocess_state(old_state, current_state)
+        next_state = preprocess_state(None, current_state)
 
         if got_reward:
             memory.push(state, action, reward, next_state, done)

@@ -6,12 +6,10 @@ if args.record or args.all:
     from deep_Q_network import *
 
 
-def f(values, n):
+def moving_average(values, n):
     offset = (n - 1) // 2
-    return [
-        sum(values[i - offset : i + offset + 1]) / n
-        for i in range(offset, len(values) - offset)
-    ]
+    v = [values[0]] * offset + values + [values[-1]] * offset
+    return [sum(v[i - offset : i + offset + 1]) / n for i in range(offset, len(v) - offset)]
 
 
 def only_rewards(ep):
@@ -32,7 +30,7 @@ def only_rewards(ep):
 
     for i, it in enumerate((1, 4)):
         axis[i].plot(iterations[it][4:], data[it][4:])
-        axis[i].plot(iterations[it][4:-16], f(data[it][4:], 17))
+        axis[i].plot(iterations[it][4:-16], moving_average(data[it][4:], 17))
     for label, axis in zip(Y_LABELS, axis):
         axis.set_ylabel(label)
     fig.suptitle(f"Episode {ep} | Total of successes = {successes}")
@@ -59,7 +57,7 @@ def only_q_values(ep):
 
     for i, it in enumerate((2, 5)):
         axis[i].plot(iterations[it][4:], data[it][4:])
-        axis[i].plot(iterations[it][4:-16], f(data[it][4:], 17))
+        axis[i].plot(iterations[it][4:-16], moving_average(data[it][4:], 17))
     for label, axis in zip(Y_LABELS, axis):
         axis.set_ylabel(label)
     fig.suptitle(f"Episode {ep} | Total of successes = {successes}")
@@ -112,6 +110,7 @@ def record(ep):
 
     path_model = WORKING_DIRECTORY / "models" / f"policy-model-{ep}.pt"
     agent.load_state_dict(torch.load(str(path_model), map_location=device))
+    agent.eval()
 
     dmaker = DecisionMaker(0, agent)
     obs = env.reset()

@@ -32,6 +32,6 @@ def save_run(one_game):
 
 
 def transform_reward(reward):
-    return min(reward, 1)
+    return reward
     # r = REWARDS["default"]  # isreversed(last_action, action_)
     # r += REWARDS[reward] if reward in REWARDS else reward / 10

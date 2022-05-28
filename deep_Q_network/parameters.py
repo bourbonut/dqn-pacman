@@ -14,7 +14,7 @@ PACMAN_COLOR = [210, 164, 74]
 # PACMAN_COLOR_GRAY = togray(PACMAN_COLOR)
 
 # Reinforcement learning constants
-BATCH_SIZE = 32
+BATCH_SIZE = 128
 DISCOUNT_RATE = 0.95
 EPS_MAX = 1.0
 EPS_MIN = 0.1
