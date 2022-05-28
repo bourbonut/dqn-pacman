@@ -27,10 +27,9 @@ while True:
     for i_step in range(AVOIDED_STEPS):
         obs, reward, done, info = env.step(0)
 
-    # old_state = preprocess_observation(obs)
+    observations = init_obs(env)
     obs, reward, done, info = env.step(0)
-    current_state = preprocess_observation(obs)
-    state = preprocess_state(None, current_state)
+    state = preprocess_observation(observations, obs)
 
     got_reward = False
 
@@ -43,9 +42,7 @@ while True:
         action_ = action.item()
 
         obs, reward_, done, info = env.step(action_)
-        old_state = current_state
         display.obs = obs
-        current_state = preprocess_observation(obs)
         reward = transform_reward(reward_)
 
         if info["lives"] < lives:
@@ -62,7 +59,7 @@ while True:
         display.data.rewards.append(reward)
         reward = torch.tensor([reward], device=device)
 
-        next_state = preprocess_state(None, current_state)
+        next_state = preprocess_observation(observations, obs)
 
         if got_reward:
             memory.push(state, action, reward, next_state, done)

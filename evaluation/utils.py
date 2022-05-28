@@ -30,7 +30,7 @@ def only_rewards(ep):
 
     for i, it in enumerate((1, 4)):
         axis[i].plot(iterations[it][4:], data[it][4:])
-        axis[i].plot(iterations[it][4:-16], moving_average(data[it][4:], 17))
+        axis[i].plot(iterations[it][4:], moving_average(data[it][4:], 17))
     for label, axis in zip(Y_LABELS, axis):
         axis.set_ylabel(label)
     fig.suptitle(f"Episode {ep} | Total of successes = {successes}")
@@ -57,7 +57,7 @@ def only_q_values(ep):
 
     for i, it in enumerate((2, 5)):
         axis[i].plot(iterations[it][4:], data[it][4:])
-        axis[i].plot(iterations[it][4:-16], moving_average(data[it][4:], 17))
+        axis[i].plot(iterations[it][4:], moving_average(data[it][4:], 17))
     for label, axis in zip(Y_LABELS, axis):
         axis.set_ylabel(label)
     fig.suptitle(f"Episode {ep} | Total of successes = {successes}")

@@ -1,5 +1,5 @@
 from .parameters import *
-from .preprocessing import preprocess_observation, preprocess_state
+from .preprocessing import preprocess_observation, init_obs
 
 from .model import optimize_model, DQN
 from .decision import DecisionMaker
