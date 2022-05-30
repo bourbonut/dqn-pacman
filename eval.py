@@ -20,9 +20,9 @@ if args.all:
 else:
     if args.record:
         record(selected_episode)
-    elif args.reward:
-        only_rewards(selected_episode)
-    elif args.qvalue:
-        only_q_values(selected_episode)
     elif not (args.record):
         load_save_result(selected_episode)
+    if args.reward:
+        only_rewards(selected_episode)
+    if args.qvalue:
+        only_q_values(selected_episode)
