@@ -3,6 +3,8 @@ from .start import PATH_PLOTS, PATH_DATA
 from matplotlib import pyplot as plt
 import statistics
 import pickle
+import streamlit as st
+from threading import Thread
 
 
 class Atom:
@@ -95,6 +97,12 @@ class Display:
             self.fig, self.axis = plt.subplots(2, 3, figsize=(16, 10))
             self.fig.tight_layout()
             self.axis = self.axis.flatten()
+
+        self.obs = None
+        self.container = st.container()
+        self.graphes = [plt.subplots() for _ in range(6)]
+        self.plot_spots = [st.empty() for _ in range(7)]
+        self.columns = st.columns(3) + st.columns(3) + st.columns(3)
         self.show = (lambda: self._show()) if dynamic else (lambda: None)
         self.save = (lambda: None) if dynamic else (lambda: self._save(image))
 
@@ -128,3 +136,20 @@ class Display:
             for axis in self.axis:
                 axis.cla()
         self.data.save()
+
+    def _stream(self, update_all=False):
+        if update_all:
+            data = iter(self.data)
+            for i in range(6):
+                with self.columns[i]:
+                    self.plot_spots[i].line_chart(next(data))
+        with self.columns[8]:
+            self.plot_spots[6].image(self.obs)
+
+
+# def streaming(data, columns, plot_spots, obs):
+#     for i in range(6):
+#         with columns[i]:
+#             plot_spots[i].line_chart(next(data))
+#     with columns[8]:
+#         plot_spots[6].image(self.obs)

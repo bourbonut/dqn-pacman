@@ -17,4 +17,5 @@ else:
     message += "\tRecorded data : {}".format(PATH_DATA)
     print(message)
 
-display = Display(args.dynamic, args.image)
+# display = Display(args.dynamic, args.image)
+display = Display(False, False)
