@@ -14,7 +14,8 @@ def create(path):
 
 create(RESULTS_PATH)
 
-if args.dynamic:
+# if args.dynamic:
+if True:
     WORKING_DIRECTORY = RESULTS_PATH / f"training-only-dynamic"
     create(WORKING_DIRECTORY)
     for subfolder in SUBFOLDERS:

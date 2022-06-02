@@ -98,11 +98,9 @@ class Display:
             self.fig.tight_layout()
             self.axis = self.axis.flatten()
 
+        st.set_page_config(layout="wide")
         self.obs = None
-        self.container = st.container()
-        self.graphes = [plt.subplots() for _ in range(6)]
-        self.plot_spots = [st.empty() for _ in range(7)]
-        self.columns = st.columns(3) + st.columns(3) + st.columns(3)
+        self.placeholder = st.empty()
         self.show = (lambda: self._show()) if dynamic else (lambda: None)
         self.save = (lambda: None) if dynamic else (lambda: self._save(image))
 
@@ -137,19 +135,26 @@ class Display:
                 axis.cla()
         self.data.save()
 
+    # def _stream(self, update_all=False):
+    #     if update_all:
+    #         data = iter(self.data)
+    #         for i in range(6):
+    #             with self.columns[i]:
+    #                 self.plot_spots[i].line_chart(next(data))
+    #     with self.columns[8]:
+    #         self.plot_spots[6].image(self.obs)
+
     def _stream(self, update_all=False):
-        if update_all:
-            data = iter(self.data)
-            for i in range(6):
-                with self.columns[i]:
-                    self.plot_spots[i].line_chart(next(data))
-        with self.columns[8]:
-            self.plot_spots[6].image(self.obs)
-
-
-# def streaming(data, columns, plot_spots, obs):
-#     for i in range(6):
-#         with columns[i]:
-#             plot_spots[i].line_chart(next(data))
-#     with columns[8]:
-#         plot_spots[6].image(self.obs)
+        with self.placeholder.container():
+            singular = st.empty()
+            columns = st.columns(3) + st.columns(3) + st.columns(3)
+            if update_all:
+                singular.write(f"Episode {self.data.ep}")
+                singular = st.empty()
+                data = iter(self.data)
+                for i in range(6):
+                    columns[i].write(self.Y_LABELS[i])
+                    columns[i].line_chart(next(data))
+                    columns[i].empty()
+            columns[7].image(self.obs, use_column_width=True)
+            columns[7].empty()

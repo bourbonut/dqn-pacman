@@ -12,8 +12,6 @@ best_score = 0
 
 # one_game = [] # useful to save a video
 
-# plot_spot = st.empty()
-
 # Main loop
 while True:
     if dmaker.steps_done > MAX_FRAMES:
@@ -29,13 +27,9 @@ while True:
     # Avoid beginning steps of the game
     for i_step in range(AVOIDED_STEPS):
         obs, reward, done, info = env.step(0)
-        # with plot_spot:
-        #     st.image(obs)
 
     observations = init_obs(env)
     obs, reward, done, info = env.step(0)
-    # with plot_spot:
-    #     st.image(obs)
     state = preprocess_observation(observations, obs)
 
     got_reward = False
@@ -49,9 +43,7 @@ while True:
         action_ = action.item()
 
         obs, reward_, done, info = env.step(action_)
-        # with plot_spot:
-        #     st.image(obs)
-        display.obs = obs
+        display.obs = obs.copy()
         reward = transform_reward(reward_)
 
         update_all = False
