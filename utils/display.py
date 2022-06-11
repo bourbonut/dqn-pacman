@@ -146,11 +146,8 @@ class Display:
 
     def _stream(self, update_all=False):
         with self.placeholder.container():
-            singular = st.empty()
             columns = st.columns(3) + st.columns(3) + st.columns(3)
             if update_all:
-                singular.write(f"Episode {self.data.ep}")
-                singular = st.empty()
                 data = iter(self.data)
                 for i in range(6):
                     columns[i].write(self.Y_LABELS[i])

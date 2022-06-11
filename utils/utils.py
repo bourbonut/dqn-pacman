@@ -1,3 +1,5 @@
+from math import log
+
 try:
     import cv2
     from .start import PATH_VIDEO
@@ -11,14 +13,25 @@ REWARDS = {
     50: 15,
     10: 10,
     0: 0,
-    "lose": -1,
-    "win": 5,
-    "reverse": -6,
+    "lose": -25,
+    "win": 10,
+    "reverse": -2,
 }
-REVERSED = {0: 9, 1: 4, 2: 3, 3: 2, 4: 1, 5: 9, 6: 7, 7: 6, 8: 5}
+REVERSED = {0: 1, 1: 0, 2: 3, 3: 2}
 isreversed = (
     lambda last_action, action: "default" if REVERSED[action] - last_action else "reverse"
 )
+
+ACTIONS = {
+    1: [1, 4, 6, 5],
+    2: [5, 7, 3, 2],
+    3: [6, 8, 3, 2],
+    4: [1, 4, 8, 7],
+    5: [1, 4, 3, 2],
+    6: [1, 4, 3, 2],
+    7: [1, 4, 3, 2],
+    8: [1, 4, 3, 2],
+}
 
 # if best_score < sum(display.rewards):
 # best_score = sum(display.rewards)
@@ -32,6 +45,7 @@ def save_run(one_game):
 
 
 def transform_reward(reward):
-    return reward
+    return log(reward, 10) if reward > 0 else reward
+
     # r = REWARDS["default"]  # isreversed(last_action, action_)
     # r += REWARDS[reward] if reward in REWARDS else reward / 10

@@ -44,12 +44,15 @@ while True:
         obs, reward_, done, info = env.step(action_)
         display.obs = obs
         reward = transform_reward(reward_)
+        if reward > 0:
+            dmaker.old_action = int(action_)
 
         if info["lives"] < lives:
             lives -= 1
             jump_dead_step = True
             got_reward = False
             reward += REWARDS["lose"]
+            dmaker.old_action = 3
 
         if done and lives > 0:
             reward += REWARDS["win"]

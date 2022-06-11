@@ -1,6 +1,6 @@
 from .parser import args
 from .start import PATH_PLOTS, PATH_MODELS, PATH_DATA
-from .utils import transform_reward, REWARDS
+from .utils import transform_reward, REWARDS, ACTIONS, REVERSED
 from .display import Display
 
 if args.dynamic:
