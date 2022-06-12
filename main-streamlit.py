@@ -2,6 +2,7 @@ import streamlit as st
 from deep_Q_network import *
 from utils import *
 
+torch.autograd.set_detect_anomaly(True)
 optimization = lambda it, r: it % K_FRAME == 0 and r  # or r in (-10, 50, 200)
 
 episodes = 0
@@ -51,7 +52,7 @@ while True:
             lives -= 1
             jump_dead_step = True
             got_reward = False
-            reward += REWARDS["lose"]
+            # reward += REWARDS["lose"]
             dmaker.old_action = 3
             update_all = True
 
@@ -68,8 +69,7 @@ while True:
             memory.push(state, action, reward, next_state, done)
 
         old_action = int(action_)
-        if reward > 0:
-            dmaker.old_action = int(action.item())
+        dmaker.old_action = int(action.item())
 
         state = next_state
         if optimization(dmaker.steps_done, got_reward):

@@ -32,7 +32,7 @@ class Atom:
 
 class Structure:
     """
-    Class to hold all (dynamic) data
+    Class to hold all data
     """
 
     def __init__(self):
@@ -85,24 +85,19 @@ class Display:
         "Total of max predicted Q value",
     )
 
-    def __init__(self, dynamic=True, image=False):
+    def __init__(self, stream=True, image=False):
         self.data = Structure()
-        if dynamic:  # To display the game and progression of the network's performance
-            self.fig = plt.figure(figsize=(16, 8))
-            m = [2, 2, 2, 2, 2, 2, 1]
-            n = [1, 2, 3, 5, 6, 7, 4]
-            self.axis = [self.fig.add_subplot(i, 4, j) for i, j in zip(m, n)]
-            self.fig.tight_layout()
+        if stream:  # To display the game and progression of the network's performance
+            st.set_page_config(layout="wide")
+            self.obs = None
+            self.placeholder = st.empty()
         else:  # To display only network's performance
             self.fig, self.axis = plt.subplots(2, 3, figsize=(16, 10))
             self.fig.tight_layout()
             self.axis = self.axis.flatten()
 
-        st.set_page_config(layout="wide")
-        self.obs = None
-        self.placeholder = st.empty()
-        self.show = (lambda: self._show()) if dynamic else (lambda: None)
-        self.save = (lambda: None) if dynamic else (lambda: self._save(image))
+        self.stream = (lambda u: self._stream(u)) if stream else (lambda u: None)
+        self.save = (lambda: None) if stream else (lambda: self._save(image))
 
     def update_axis(self, observation=False):
         for axis, data in zip(self.axis[:-1], self.data):
@@ -115,15 +110,6 @@ class Display:
         successes = self.data.successes
         self.fig.suptitle(f"Episode {episodes} | Total of successes = {successes}")
 
-    def _show(self):
-        plt.ion()
-        self.update_axis(True)
-        self.fig.tight_layout()
-        plt.draw()
-        plt.pause(0.0001)
-        for axis in self.axis:
-            axis.cla()
-
     def _save(self, image=False):
         """Save data in `pickle` file and an image"""
         if image:
@@ -134,15 +120,6 @@ class Display:
             for axis in self.axis:
                 axis.cla()
         self.data.save()
-
-    # def _stream(self, update_all=False):
-    #     if update_all:
-    #         data = iter(self.data)
-    #         for i in range(6):
-    #             with self.columns[i]:
-    #                 self.plot_spots[i].line_chart(next(data))
-    #     with self.columns[8]:
-    #         self.plot_spots[6].image(self.obs)
 
     def _stream(self, update_all=False):
         with self.placeholder.container():

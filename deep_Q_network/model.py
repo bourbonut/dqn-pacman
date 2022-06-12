@@ -8,12 +8,12 @@ from .parameters import BATCH_SIZE, DISCOUNT_RATE, TAU, device
 
 class DQN(nn.Module):
 
-    CONV_N_MAPS = [12, 64, 64]
+    CONV_N_MAPS = [4, 64, 64]
     CONV_KERNEL_SIZES = [(4, 4), (2, 2)]
     CONV_STRIDES = [2, 2]
     CONV_PADDINGS = [2, 0]
     N_HIDDEN_IN = 64 * 11 * 10  # 1600
-    N_HIDDEN = [1024, 512]
+    N_HIDDEN = [512, 256]
 
     def __init__(self, outputs):
         super(DQN, self).__init__()
@@ -32,10 +32,10 @@ class DQN(nn.Module):
         # self.dropout1 = nn.Dropout(0.25)
 
         self.hidden1 = nn.Linear(self.N_HIDDEN_IN, self.N_HIDDEN[0])
-        self.ln1 = nn.LayerNorm(self.N_HIDDEN[0])
+        # self.ln1 = nn.LayerNorm(self.N_HIDDEN[0])
         # self.dropout1 = nn.Dropout(0.5)
         self.hidden2 = nn.Linear(self.N_HIDDEN[0], self.N_HIDDEN[1])
-        self.ln2 = nn.LayerNorm(self.N_HIDDEN[1])
+        # self.ln2 = nn.LayerNorm(self.N_HIDDEN[1])
         # self.dropout2 = nn.Dropout(0.3)
         self.output = nn.Linear(self.N_HIDDEN[1], outputs)
 
@@ -47,11 +47,11 @@ class DQN(nn.Module):
         # x = F.relu(self.conv2(x))
         # x = self.maxp2d(x)
         x = x.view(x.size(0), -1)
-        # x = F.relu(self.hidden1(x))
-        x = F.relu(self.ln1(self.hidden1(x)))
+        x = F.relu(self.hidden1(x))
+        # x = F.relu(self.ln1(self.hidden1(x)))
         # x = self.dropout1(x)
-        # x = F.relu(self.hidden2(x))
-        x = F.relu(self.ln2(self.hidden2(x)))
+        x = F.relu(self.hidden2(x))
+        # x = F.relu(self.ln2(self.hidden2(x)))
         # x = self.dropout2(x)
         return self.output(x)
 

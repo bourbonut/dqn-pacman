@@ -12,26 +12,34 @@ def extend_walls(img):
     return np.concatenate([extension, img, extension])
 
 
+# def unit_prepr_obs(obs):
+#     gray_img = cv2.cvtColor(obs, cv2.COLOR_RGB2GRAY)
+#     trimmed_img = gray_img[1:171]
+#     extended_img = extend_walls(trimmed_img)
+#     canvas = extended_img[1::4, 1::4]
+#     pills_walls = canvas.copy()
+#     pills_walls[canvas != WALL_COLOR_GRAY] = 0
+#     pacman_monsters = canvas.copy()
+#     pacman_monsters[(canvas == WALL_COLOR_GRAY) | (canvas == BACKGROUND_GRAY)] = 0
+#     pacman = pacman_monsters.copy()
+#     monsters = pacman_monsters.copy()
+#     pacman[pacman_monsters != PACMAN_COLOR_GRAY] = 0
+#     monsters[pacman_monsters == PACMAN_COLOR_GRAY] = 0
+#     return np.stack(
+#         [
+#             pills_walls.astype(np.float32),
+#             pacman.astype(np.float32),
+#             monsters.astype(np.float32),
+#         ]
+#     )
+
+
 def unit_prepr_obs(obs):
     gray_img = cv2.cvtColor(obs, cv2.COLOR_RGB2GRAY)
     trimmed_img = gray_img[1:171]
     extended_img = extend_walls(trimmed_img)
-    canvas = extended_img[1::4, 1::4]
-    pills_walls = canvas.copy()
-    pills_walls[canvas != WALL_COLOR_GRAY] = 0
-    pacman_monsters = canvas.copy()
-    pacman_monsters[(canvas == WALL_COLOR_GRAY) | (canvas == BACKGROUND_GRAY)] = 0
-    pacman = pacman_monsters.copy()
-    monsters = pacman_monsters.copy()
-    pacman[pacman_monsters != PACMAN_COLOR_GRAY] = 0
-    monsters[pacman_monsters == PACMAN_COLOR_GRAY] = 0
-    return np.stack(
-        [
-            pills_walls.astype(np.float32),
-            pacman.astype(np.float32),
-            monsters.astype(np.float32),
-        ]
-    )
+    final_img = extended_img[1::4, 1::4]
+    return np.stack([final_img.astype(np.float32)])
 
 
 def preprocess_observation(observations, new_obs):

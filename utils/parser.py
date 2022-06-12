@@ -2,10 +2,10 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--dynamic",
+    "--stream",
     action="store_true",
-    dest="dynamic",
-    help="Display a dynamic graph (no save during execution)",
+    dest="stream",
+    help="Open a page where you can see the agent learning (no image or data saved during execution)",
 )
 parser.add_argument(
     "--image",
