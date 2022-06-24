@@ -6,14 +6,18 @@ import torch
 from .parameters import BATCH_SIZE, DISCOUNT_RATE, TAU, device
 
 
+def my_rely(x):
+    return torch.maximum(x, torch.zeros_like(x))
+
+
 class DQN(nn.Module):
 
-    CONV_N_MAPS = [4, 64, 64]
+    CONV_N_MAPS = [4, 32, 32]
     CONV_KERNEL_SIZES = [(4, 4), (2, 2)]
     CONV_STRIDES = [2, 2]
     CONV_PADDINGS = [2, 0]
-    N_HIDDEN_IN = 64 * 11 * 10  # 1600
-    N_HIDDEN = [512, 256]
+    N_HIDDEN_IN = 32 * 11 * 10  # 1600
+    N_HIDDEN = [512, 64]
 
     def __init__(self, outputs):
         super(DQN, self).__init__()
@@ -33,8 +37,9 @@ class DQN(nn.Module):
 
         self.hidden1 = nn.Linear(self.N_HIDDEN_IN, self.N_HIDDEN[0])
         # self.ln1 = nn.LayerNorm(self.N_HIDDEN[0])
-        # self.dropout1 = nn.Dropout(0.5)
+        # self.dropout1 = nn.Dropout(0.3)
         self.hidden2 = nn.Linear(self.N_HIDDEN[0], self.N_HIDDEN[1])
+        # self.hidden3 = nn.Linear(self.N_HIDDEN[1], self.N_HIDDEN[2])
         # self.ln2 = nn.LayerNorm(self.N_HIDDEN[1])
         # self.dropout2 = nn.Dropout(0.3)
         self.output = nn.Linear(self.N_HIDDEN[1], outputs)
@@ -46,11 +51,12 @@ class DQN(nn.Module):
         x = F.relu(self.bn2(self.conv2(x)))
         # x = F.relu(self.conv2(x))
         # x = self.maxp2d(x)
-        x = x.view(x.size(0), -1)
+        x = torch.flatten(x, start_dim=1)
         x = F.relu(self.hidden1(x))
         # x = F.relu(self.ln1(self.hidden1(x)))
         # x = self.dropout1(x)
         x = F.relu(self.hidden2(x))
+        # x = F.relu(self.hidden3(x))
         # x = F.relu(self.ln2(self.hidden2(x)))
         # x = self.dropout2(x)
         return self.output(x)
@@ -64,17 +70,18 @@ def optimize_model(policy_DQN, target_DQN, memory, optimizer, display, learn_cou
 
     predicted_targets = policy_DQN(states).gather(1, actions)
 
-    target_values = target_DQN(next_states).max(1)[0].detach()
+    target_values = target_DQN(next_states).detach().max(1)[0]
     labels = rewards + DISCOUNT_RATE * (1 - dones.squeeze(1)) * target_values
 
     criterion = torch.nn.SmoothL1Loss()
-    loss = criterion(predicted_targets, labels.unsqueeze(1)).to(device)
+    loss = criterion(predicted_targets, labels.detach().unsqueeze(1)).to(device)
     display.data.losses.append(loss.item())
+    # display.data.losses.append(0)
 
     optimizer.zero_grad()
     loss.backward()
-    for param in policy_DQN.parameters():
-        param.grad.data.clamp_(-1, 1)
+    # for param in policy_DQN.parameters():
+       # param.grad.data.clamp_(-1, 1)
     optimizer.step()
 
     # # Softmax update

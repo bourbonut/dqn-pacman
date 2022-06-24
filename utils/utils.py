@@ -13,7 +13,7 @@ REWARDS = {
     50: 15,
     10: 10,
     0: 0,
-    "lose": -1,
+    "lose": -100, # -log(10, 1000),
     "win": 10,
     "reverse": -2,
 }
@@ -45,7 +45,7 @@ def save_run(one_game):
 
 
 def transform_reward(reward):
-    # return log(reward, 10) if reward > 0 else reward
+    # return log(reward, 1000) if reward > 0 else reward
     return reward
     # r = REWARDS["default"]  # isreversed(last_action, action_)
     # r += REWARDS[reward] if reward in REWARDS else reward / 10

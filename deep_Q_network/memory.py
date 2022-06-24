@@ -26,6 +26,7 @@ class ReplayMemory:
         self.size = min(self.size + 1, self.capacity)
 
     def sample(self):
+        assert self.size >= self.batch_size
         indices = random.sample(range(self.size), k=self.batch_size)
         exps = (self.states, self.actions, self.rewards, self.next_states)
         extract = lambda list_: [list_[i] for i in indices]

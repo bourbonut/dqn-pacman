@@ -1,5 +1,3 @@
-from .start import PATH_PLOTS, PATH_DATA
-
 from matplotlib import pyplot as plt
 import statistics
 import pickle
@@ -18,7 +16,7 @@ class Atom:
         self._total = []
 
     def mean(self):
-        self._mean.append(statistics.mean(self._raw))
+        self._mean.append(statistics.mean(self._raw) if len(self._raw) > 0 else 0)
 
     def total(self):
         self._total.append(sum(self._raw))
@@ -47,8 +45,8 @@ class Structure:
         yield self.rewards._mean
         yield self.q_values._mean
         yield self.rewards._raw
-        yield self.q_values._total
         yield self.rewards._total
+        yield self.q_values._total
 
     def round(self):
         self.ep += 1
