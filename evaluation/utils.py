@@ -118,30 +118,34 @@ def record(ep, path):
     frameSize = (160, 210)
     path_video = path / "output_video.avi"
     bin_loader = cv2.VideoWriter_fourcc(*"DIVX")
-    out = cv2.VideoWriter(str(path_video), bin_loader, 15, frameSize)
+    out = cv2.VideoWriter(str(path_video), bin_loader, 30, frameSize)
 
     # Avoid beginning steps of the game
     for i_step in range(AVOIDED_STEPS):
-        obs, reward, done, info = env.step(0)
+        obs, reward, done, info = env.step(3)
 
     observations = init_obs(env)
-    obs, reward, done, info = env.step(0)
+    obs, reward, done, info = env.step(3)
     out.write(cv2.cvtColor(obs, cv2.COLOR_RGB2BGR))
+    old_action = 3
 
     while True:
         state = preprocess_observation(observations, obs)
-        sample = random.random()
-        eps_threshold = EPS_MIN
-        with torch.no_grad():
-            q_values = agent(state)
-        if sample > eps_threshold:
-            action = q_values.max(1)[1].view(1, 1)
-        else:
-            random_action = [[random.randrange(N_ACTIONS)]]
-            action = torch.tensor(random_action, device=device, dtype=torch.long)
+        # sample = random.random()
+        # eps_threshold = EPS_MIN
+        # with torch.no_grad():
+        #     q_values = agent(state)
+        # if sample > eps_threshold:
+        #     action = q_values.max(1)[1].view(1, 1)
+        # else:
+        #     random_action = [[random.randrange(N_ACTIONS)]]
+        #     action = torch.tensor(random_action, device=device, dtype=torch.long)
+        action = agent(state).max(1)[1].view(1, 1)
 
+        action_ = ACTIONS[old_action][action.item()]
         obs, reward, done, info = env.step(action)
         out.write(cv2.cvtColor(obs, cv2.COLOR_RGB2BGR))
+        old_action = action_
         if done:
             break
 

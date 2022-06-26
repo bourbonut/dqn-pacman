@@ -1,8 +1,14 @@
 from evaluation import *
 from evaluation.parser import args
+from pathlib import path
 import re
 
 NUM = re.compile(r"episode-(\d+).pkl")
+def dir_path(path):
+    if path == "" or Path(path).exists():
+        return path
+    else:
+        raise NotADirectoryError(path)
 
 path = dir_path(args.path)
 ABS_PATH = Path().absolute()

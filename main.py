@@ -10,38 +10,9 @@ episodes = 0
 learn_counter = 0
 best_score = 0
 
-if args.stream:
-    print("Streaming display (no image or data saved during execution)")
-elif args.image:
-    message = "Saves during execution :\n"
-    message += "\t       Models : {}".format(PATH_MODELS) + "\n"
-    message += "\tRecorded data : {}".format(PATH_DATA) + "\n"
-    message += "\t        Plots : {}".format(PATH_PLOTS)
-    print(message)
-else:
-    message = "Saves during execution :\n"
-    message += "\t       Models : {}".format(PATH_MODELS) + "\n"
-    message += "\tRecorded data : {}".format(PATH_DATA)
-    print(message)
-
-create(RESULTS_PATH)
-
-if args.stream:
-    WORKING_DIRECTORY = RESULTS_PATH / f"training-only-stream"
-    create(WORKING_DIRECTORY)
-    for subfolder in SUBFOLDERS:
-        create(WORKING_DIRECTORY / subfolder)
-else:
-    folders = list(RESULTS_PATH.iterdir())
-    index = 1
-    while any(RESULTS_PATH.glob(f"training-{index}*")):
-        index += 1
-
-    WORKING_DIRECTORY = RESULTS_PATH / f"training-{index}"
-    WORKING_DIRECTORY.mkdir()
-    print('Folder "{}" created.'.format(WORKING_DIRECTORY))
-    for subfolder in SUBFOLDERS:
-        create(WORKING_DIRECTORY / subfolder)
+ABS_PATH = Path().absolute()
+RESULTS_PATH = ABS_PATH / "results"
+PATH_MODELS = start(args)
 
 # Set environment
 ale = ALEInterface()
@@ -66,8 +37,6 @@ memory = ReplayMemory(REPLAY_MEMORY_SIZE, BATCH_SIZE)
 
 # Set decision maker
 dmaker = DecisionMaker(0, policy_DQN)
-make_path = lambda subfolder: WORKING_DIRECTORY / subfolder
-PATH_MODELS, PATH_PLOTS, PATH_DATA = map(make_path, SUBFOLDERS)
 display = Display(args.stream, args.image)
 
 # one_game = [] # useful to save a video
@@ -135,12 +104,17 @@ while True:
         state = next_state
         if optimization(dmaker.steps_done, got_reward):
             learn_counter = optimize_model(
-                policy_DQN, target_DQN, memory, optimizer, display, learn_counter, device
+                policy_DQN,
+                target_DQN,
+                memory,
+                optimizer,
+                display,
+                learn_counter,
+                device,
             )
 
         if dmaker.steps_done % TARGET_UPDATE == 0:
             target_DQN.load_state_dict(policy_DQN.state_dict())
-            print("Tranfered")
 
         display.stream(update_all)
         if done:

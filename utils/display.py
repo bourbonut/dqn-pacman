@@ -1,8 +1,7 @@
 from matplotlib import pyplot as plt
-import statistics
-import pickle
+from .path import working_path
 import streamlit as st
-from threading import Thread
+import statistics, pickle
 
 
 class Atom:
@@ -27,18 +26,27 @@ class Atom:
     def append(self, item):
         self._raw.append(item)
 
+    def mov_avg(self, t):
+        values = (
+            [0] * (t - len(self._total)) + self._total
+            if len(self._total) < t
+            else self._total[-t:]
+        )
+        self._mean.append(statistics.mean(values))
+
 
 class Structure:
     """
     Class to hold all data
     """
 
-    def __init__(self):
+    def __init__(self, path):
         self.ep = 1
         self.successes = 0
         self.losses = Atom()
         self.rewards = Atom()
         self.q_values = Atom()
+        self.path = path
 
     def __iter__(self):
         yield self.losses._raw
@@ -50,7 +58,7 @@ class Structure:
 
     def round(self):
         self.ep += 1
-        self.rewards.mean()
+        self.rewards.mov_avg(20)
         self.rewards.total()
         self.q_values.mean()
         self.q_values.total()
@@ -63,7 +71,7 @@ class Structure:
 
     def save(self):
         """Save data in `pickle` file"""
-        with open(PATH_DATA / f"episode-{self.ep}.pkl", "wb") as file:
+        with open(self.path / f"episode-{self.ep}.pkl", "wb") as file:
             pickle.dump(list(self) + [self.successes], file)
         print(f"Episode {self.ep} saved.")
 
@@ -84,7 +92,7 @@ class Display:
     )
 
     def __init__(self, stream=True, image=False):
-        self.data = Structure()
+        self.data = Structure(working_path(stream, offset=1) / "recorded-data")
         if stream:  # To display the game and progression of the network's performance
             st.set_page_config(layout="wide")
             self.obs = None
