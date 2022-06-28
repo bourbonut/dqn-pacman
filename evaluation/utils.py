@@ -1,4 +1,5 @@
 import pickle, torch, random
+from utils import ACTIONS
 from deep_Q_network import *
 
 def moving_average(values, n):
@@ -131,18 +132,18 @@ def record(ep, path):
 
     while True:
         state = preprocess_observation(observations, obs)
-        # sample = random.random()
-        # eps_threshold = EPS_MIN
-        # with torch.no_grad():
-        #     q_values = agent(state)
-        # if sample > eps_threshold:
-        #     action = q_values.max(1)[1].view(1, 1)
-        # else:
-        #     random_action = [[random.randrange(N_ACTIONS)]]
-        #     action = torch.tensor(random_action, device=device, dtype=torch.long)
-        action = agent(state).max(1)[1].view(1, 1)
+        sample = random.random()
+        eps_threshold = EPS_MIN
+        with torch.no_grad():
+            q_values = agent(state)
+        if sample > eps_threshold:
+            action = q_values.max(1)[1].view(1, 1)
+        else:
+            random_action = [[random.randrange(N_ACTIONS)]]
+            action = torch.tensor(random_action, device=device, dtype=torch.long)
+        # action = agent(state).max(1)[1].view(1, 1)
 
-        action_ = ACTIONS[old_action][action.item()]
+        action_ = ACTIONS[old_action][action_]
         obs, reward, done, info = env.step(action)
         out.write(cv2.cvtColor(obs, cv2.COLOR_RGB2BGR))
         old_action = action_
