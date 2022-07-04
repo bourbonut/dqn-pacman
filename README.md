@@ -64,18 +64,17 @@ The behavior of the agent becomes better when the Q-value improves over the time
 
 The agent is able to avoid chasing ghosts
 
-<video class="align" controls>
-    <source src="./docs/good-behavior.mp4", type="video/mp4">
-</video>
-
+<p align="center">
+  <img src="./docs/good_behavior.gif"/>
+</p>
 
 #### High score
 
 The agent eats pills and eats ghosts after having gotten a boost. 
 
-<video class="align" controls>
-    <source src="./docs/high-score.mp4", type="video/mp4">
-</video>
+<p align="center">
+  <img src="./docs/high_score.gif"/>
+</p>
 
 ## For installation
 
