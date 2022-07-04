@@ -16,10 +16,10 @@ PACMAN_COLOR_GRAY = togray(PACMAN_COLOR)
 # Reinforcement learning constants
 BATCH_SIZE = 128
 DISCOUNT_RATE = 0.99
-EPS_MAX = 0.9
+EPS_MAX = 1.0
 EPS_MIN = 0.1
-EPS_DECAY = 250_000
-TARGET_UPDATE = 5_000  # here
+EPS_DECAY = 1_000_000
+TARGET_UPDATE = 8_000  # here
 REPLAY_MEMORY_SIZE = 3 * 6000
 
 # Environment constants
@@ -27,11 +27,9 @@ N_ACTIONS = 4
 AVOIDED_STEPS = 80  # At the beginning, there is a period of time where the game doesn't allowed the player to move Pacman
 DEAD_STEPS = 36  # frames to avoid when the agent dies
 K_FRAME = 2
-TRAINING_START = 0
-TAU = 2.5e-4
 
 # Optimizer parameters
-LEARNING_RATE = 1e-3
+LEARNING_RATE = 2.5e-4
 # DECAY_RATE = 0.99
 MOMENTUM = 0.95
 

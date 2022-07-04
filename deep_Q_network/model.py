@@ -3,7 +3,7 @@ from torch.nn import functional as F
 from torchvision import transforms as T
 import torch
 
-from .parameters import BATCH_SIZE, DISCOUNT_RATE, TAU, device
+from .parameters import BATCH_SIZE, DISCOUNT_RATE, device
 
 
 def my_rely(x):
@@ -16,8 +16,8 @@ class DQN(nn.Module):
     CONV_KERNEL_SIZES = [(4, 4), (2, 2)]
     CONV_STRIDES = [2, 2]
     CONV_PADDINGS = [2, 0]
-    N_HIDDEN_IN = 32 * 11 * 10  # 1600
-    N_HIDDEN = [512, 64]
+    N_HIDDEN_IN = 32 * 11 * 10
+    N_HIDDEN = [512, 128]
 
     def __init__(self, outputs):
         super(DQN, self).__init__()
@@ -32,33 +32,18 @@ class DQN(nn.Module):
         self.bn1 = nn.BatchNorm2d(self.CONV_N_MAPS[1])
         self.conv2 = conv2d(1)
         self.bn2 = nn.BatchNorm2d(self.CONV_N_MAPS[2])
-        # self.maxp2d = nn.MaxPool2d((2, 2))
-        # self.dropout1 = nn.Dropout(0.25)
 
         self.hidden1 = nn.Linear(self.N_HIDDEN_IN, self.N_HIDDEN[0])
-        # self.ln1 = nn.LayerNorm(self.N_HIDDEN[0])
-        # self.dropout1 = nn.Dropout(0.3)
         self.hidden2 = nn.Linear(self.N_HIDDEN[0], self.N_HIDDEN[1])
-        # self.hidden3 = nn.Linear(self.N_HIDDEN[1], self.N_HIDDEN[2])
-        # self.ln2 = nn.LayerNorm(self.N_HIDDEN[1])
-        # self.dropout2 = nn.Dropout(0.3)
         self.output = nn.Linear(self.N_HIDDEN[1], outputs)
 
     def forward(self, x):
         x = x.to(device)
         x = F.relu(self.bn1(self.conv1(x)))
-        # x = F.relu(self.conv1(x))
         x = F.relu(self.bn2(self.conv2(x)))
-        # x = F.relu(self.conv2(x))
-        # x = self.maxp2d(x)
         x = torch.flatten(x, start_dim=1)
         x = F.relu(self.hidden1(x))
-        # x = F.relu(self.ln1(self.hidden1(x)))
-        # x = self.dropout1(x)
         x = F.relu(self.hidden2(x))
-        # x = F.relu(self.hidden3(x))
-        # x = F.relu(self.ln2(self.hidden2(x)))
-        # x = self.dropout2(x)
         return self.output(x)
 
 
@@ -76,12 +61,11 @@ def optimize_model(policy_DQN, target_DQN, memory, optimizer, display, learn_cou
     criterion = torch.nn.SmoothL1Loss()
     loss = criterion(predicted_targets, labels.detach().unsqueeze(1)).to(device)
     display.data.losses.append(loss.item())
-    # display.data.losses.append(0)
 
     optimizer.zero_grad()
     loss.backward()
-    # for param in policy_DQN.parameters():
-       # param.grad.data.clamp_(-1, 1)
+    for param in policy_DQN.parameters():
+       param.grad.data.clamp_(-1, 1)
     optimizer.step()
 
     # # Softmax update

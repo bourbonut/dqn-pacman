@@ -143,8 +143,8 @@ def record(ep, path):
             action = torch.tensor(random_action, device=device, dtype=torch.long)
         # action = agent(state).max(1)[1].view(1, 1)
 
-        action_ = ACTIONS[old_action][action_]
-        obs, reward, done, info = env.step(action)
+        action_ = ACTIONS[old_action][action.item()]
+        obs, reward, done, info = env.step(action_)
         out.write(cv2.cvtColor(obs, cv2.COLOR_RGB2BGR))
         old_action = action_
         if done:

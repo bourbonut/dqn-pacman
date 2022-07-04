@@ -1,6 +1,6 @@
 from evaluation import *
 from evaluation.parser import args
-from pathlib import path
+from pathlib import Path
 import re
 
 NUM = re.compile(r"episode-(\d+).pkl")
