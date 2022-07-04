@@ -4,11 +4,83 @@
   <img src="./docs/demo.gif"/>
 </p>
 
+## Basic information
+
+The goal of this project is to apply the **Deep Q-Network** algorithm on Ms-Pacman environment and to reach good performance without using prioritized replay memory or better DQN namely _A3C_ or _Rainbow DQN_.
+Following results were obtained with following parameters :
+
+| Parameter          | Value               |
+| ------------------ | ------------------- |
+| Batch size         | `128`               |
+| Discount rate      | `0.99`              |
+| Epsilon max        | `1.0`               |
+| Epsilon min        | `0.1`               |
+| Epsilon decay      | `1,000,000`         |
+| Target update      | `8,000`             |
+| Replay memory size | `18,000`            |
+| Optimizer          | SGD with momentum   |
+| Learning rate      | `2.5e-4`            |
+| Momentum           | `0.95`              |
+| Positive reward    | `log(reward, 1000)` |
+| Negative reward    | `-log(20, 1000)`    |
+
+## Performances
+
+### Rewards
+
+Default rewards follow a large range. To standardize rewards, the logarithm function is applied on reward given by the environment (see the function `transform_reward` in `utils/utils.py`).
+
+```python
+from math import log
+def transform_reward(reward):
+    return log(reward, 1000) if reward > 0 else reward
+```
+
+Also a negative reward is given to the agent when a ghost eats the agent. On the top of the following figure, the average reward is computed on the 20 latest episodes :
+
+```python
+import statistics
+def mov_avg(self, t):
+    # t = 20
+    values = (
+	[0] * (t - len(self._total)) + self._total
+	if len(self._total) < t
+	else self._total[-t:]
+    )
+    self._mean.append(statistics.mean(values))
+```
+
+![rewards](./docs/rewards.png)
+
+### Q-value
+
+The behavior of the agent becomes better when the Q-value improves over the time.
+
+![q-value](./docs/q_values.png)
+
+### Results
+
+#### Smart behavior
+
+The agent is able to avoid chasing ghosts
+
+<p align="center">
+  <img src="./docs/good_behavior.gif"/>
+</p>
+
+#### High score
+
+The agent eats pills and eats ghosts after having gotten a boost. 
+
+<p align="center">
+  <img src="./docs/high_score.gif"/>
+</p>
+
 ## For installation
 
 It is **highly recommended** to install packages in a virtual environment.
 
-### Installation of the Atari environment
+### Installation of Atari environment
 
 ```sh
 pip install ale-py==0.7
@@ -24,10 +96,10 @@ pip install -U gym[atari]
 ### Installation of dependencies
 
 ```sh
-python setup.py install
+pip install -r requirements.txt
 ```
 
-**Note :** If you don't follow the setup file, `opencv-python` and `matplotlib` could be incompatible depending on the versions of packages. `opencv-python` is only used to write a video in `eval.py`.
+**Note :** If you don't follow the requirements file, `opencv-python` and `matplotlib` could be incompatible depending on the versions of packages. `opencv-python` is only used to write a video in `eval.py`.
 
 ## For usage
 
@@ -50,16 +122,18 @@ python main.py --image
 
 ![example-result](./docs/example-result.png)
 
-#### Dynamic display (slow)
+#### Dynamic display
 
 This mode is useful when you want to see how the agent reacts and interacts with his environment.
 
 To display the "dashboard", simply run :
 ```sh
-python main.py --dynamic
+streamlit run main.py -- --stream
 ```
 
 ![dashboard](./docs/board.png)
+
+**Note :** `streamlit` allows to display dynamically the game but for better performance, charts are updated only when the agent dies. It is recommended for a long training to not use this mode.
 
 ### Evaluation
 
@@ -123,7 +197,3 @@ You can find different flags to get what you want :
 ├── README.md
 └── setup.py
 ```
-
-# Additional information
-
-For more information, you can find my [report](./docs/report.pdf).

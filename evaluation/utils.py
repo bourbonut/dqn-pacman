@@ -1,20 +1,14 @@
-from .path import WORKING_DIRECTORY
-from .parser import args
 import pickle, torch, random
+from utils import ACTIONS
+from deep_Q_network import *
 
-if args.record or args.all:
-    from deep_Q_network import *
-
-
-def f(values, n):
+def moving_average(values, n):
     offset = (n - 1) // 2
-    return [
-        sum(values[i - offset : i + offset + 1]) / n
-        for i in range(offset, len(values) - offset)
-    ]
+    v = [values[0]] * offset + values + [values[-1]] * offset
+    return [sum(v[i - offset : i + offset + 1]) / n for i in range(offset, len(v) - offset)]
 
 
-def only_rewards(ep):
+def only_rewards(ep, path):
     from matplotlib import pyplot as plt
 
     Y_LABELS = (
@@ -22,7 +16,7 @@ def only_rewards(ep):
         "Total of rewards per episode",
     )
 
-    with open(WORKING_DIRECTORY / "recorded-data" / f"episode-{ep}.pkl", "rb") as file:
+    with open(path / "recorded-data" / f"episode-{ep}.pkl", "rb") as file:
         data = pickle.load(file)
 
     iterations = list(map(range, map(len, data[:-1])))
@@ -32,16 +26,16 @@ def only_rewards(ep):
 
     for i, it in enumerate((1, 4)):
         axis[i].plot(iterations[it][4:], data[it][4:])
-        axis[i].plot(iterations[it][4:-16], f(data[it][4:], 17))
+        axis[i].plot(iterations[it][4:], moving_average(data[it][4:], 17))
     for label, axis in zip(Y_LABELS, axis):
         axis.set_ylabel(label)
     fig.suptitle(f"Episode {ep} | Total of successes = {successes}")
     fig.tight_layout()
-    plt.savefig(WORKING_DIRECTORY / "rewards.png")
-    print('"rewards.png" saved in "{}"'.format(WORKING_DIRECTORY))
+    plt.savefig(path / "rewards.png")
+    print('"rewards.png" saved in "{}"'.format(path))
 
 
-def only_q_values(ep):
+def only_q_values(ep, path):
     from matplotlib import pyplot as plt
 
     Y_LABELS = (
@@ -49,7 +43,7 @@ def only_q_values(ep):
         "Total of max predicted Q value",
     )
 
-    with open(WORKING_DIRECTORY / "recorded-data" / f"episode-{ep}.pkl", "rb") as file:
+    with open(path / "recorded-data" / f"episode-{ep}.pkl", "rb") as file:
         data = pickle.load(file)
 
     iterations = list(map(range, map(len, data[:-1])))
@@ -59,16 +53,16 @@ def only_q_values(ep):
 
     for i, it in enumerate((2, 5)):
         axis[i].plot(iterations[it][4:], data[it][4:])
-        axis[i].plot(iterations[it][4:-16], f(data[it][4:], 17))
+        axis[i].plot(iterations[it][4:], moving_average(data[it][4:], 17))
     for label, axis in zip(Y_LABELS, axis):
         axis.set_ylabel(label)
     fig.suptitle(f"Episode {ep} | Total of successes = {successes}")
     fig.tight_layout()
-    plt.savefig(WORKING_DIRECTORY / "q_values.png")
-    print('"q_values.png" saved in "{}"'.format(WORKING_DIRECTORY))
+    plt.savefig(path / "q_values.png")
+    print('"q_values.png" saved in "{}"'.format(path))
 
 
-def load_save_result(ep):
+def load_save_result(ep, path):
     from matplotlib import pyplot as plt
 
     Y_LABELS = (
@@ -80,7 +74,7 @@ def load_save_result(ep):
         "Total of max predicted Q value",
     )
 
-    with open(WORKING_DIRECTORY / "recorded-data" / f"episode-{ep}.pkl", "rb") as file:
+    with open(path / "recorded-data" / f"episode-{ep}.pkl", "rb") as file:
         data = pickle.load(file)
 
     iterations = list(map(range, map(len, data[:-1])))
@@ -99,38 +93,45 @@ def load_save_result(ep):
         axis.set_ylabel(label)
     fig.suptitle(f"Episode {ep} | Total of successes = {successes}")
     fig.tight_layout()
-    plt.savefig(WORKING_DIRECTORY / "result.png")
-    print('"result.png" saved in "{}"'.format(WORKING_DIRECTORY))
+    plt.savefig(path / "result.png")
+    print('"result.png" saved in "{}"'.format(path))
 
 
-def record(ep):
+def record(ep, path):
     import cv2
+
+    # Set environment
+    ale = ALEInterface()
+    ale.loadROM(Pacman)
+    env = gym.make("MsPacman-v0")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    agent = DQN(HEIGHT, WIDTH, N_ACTIONS).to(device)
+    agent = DQN(N_ACTIONS).to(device)
 
-    path_model = WORKING_DIRECTORY / "models" / f"policy-model-{ep}.pt"
+    path_model = path / "models" / f"policy-model-{ep}.pt"
     agent.load_state_dict(torch.load(str(path_model), map_location=device))
+    agent.eval()
 
     dmaker = DecisionMaker(0, agent)
     obs = env.reset()
 
     frameSize = (160, 210)
-    path_video = WORKING_DIRECTORY / "output_video.avi"
+    path_video = path / "output_video.avi"
     bin_loader = cv2.VideoWriter_fourcc(*"DIVX")
-    out = cv2.VideoWriter(str(path_video), bin_loader, 15, frameSize)
+    out = cv2.VideoWriter(str(path_video), bin_loader, 30, frameSize)
 
     # Avoid beginning steps of the game
     for i_step in range(AVOIDED_STEPS):
-        obs, reward, done, info = env.step(0)
+        obs, reward, done, info = env.step(3)
 
     observations = init_obs(env)
-    obs, reward, done, info = env.step(0)
+    obs, reward, done, info = env.step(3)
     out.write(cv2.cvtColor(obs, cv2.COLOR_RGB2BGR))
+    old_action = 3
 
     while True:
-        state = preprocessing_observation(observations, obs)
+        state = preprocess_observation(observations, obs)
         sample = random.random()
         eps_threshold = EPS_MIN
         with torch.no_grad():
@@ -140,11 +141,14 @@ def record(ep):
         else:
             random_action = [[random.randrange(N_ACTIONS)]]
             action = torch.tensor(random_action, device=device, dtype=torch.long)
+        # action = agent(state).max(1)[1].view(1, 1)
 
-        obs, reward, done, info = env.step(action)
+        action_ = ACTIONS[old_action][action.item()]
+        obs, reward, done, info = env.step(action_)
         out.write(cv2.cvtColor(obs, cv2.COLOR_RGB2BGR))
+        old_action = action_
         if done:
             break
 
     out.release()
-    print('"output_video.avi" saved in {}'.format(WORKING_DIRECTORY))
+    print('"output_video.avi" saved in {}'.format(path))

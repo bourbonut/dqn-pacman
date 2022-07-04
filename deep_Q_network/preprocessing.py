@@ -1,55 +1,74 @@
-from .parameters import PACMAN_COLOR
+from .parameters import PACMAN_COLOR_GRAY, WALL_COLOR_GRAY, BACKGROUND_GRAY
 import numpy as np
+import cv2
 import torch
-from torchvision import transforms as T
 
-# from PIL import Image
-
-resize = T.Compose(
-    [
-        T.ToPILImage(),
-        T.Resize(160, interpolation=T.InterpolationMode.BICUBIC),
-        T.ToTensor(),
-    ]
-)
+from collections import Counter
+from time import perf_counter as pf
 
 
-# def preprocessing_observation(obs):
-#     truncated_obs = obs[1:176:2, ::2]  # crop and truncate the observation
-#     gray_truncated_obs = truncated_obs.sum(axis=2)  # to grayscale
-#     indices = gray_truncated_obs == PACMAN_COLOR
-#     gray_truncated_obs[gray_truncated_obs == PACMAN_COLOR] = 0
-#     normalized_img = (gray_truncated_obs // 3 - 128).astype(np.int8)
-#     reshaped_array = normalized_img.reshape(88, 80, 1).transpose((2, 0, 1)).astype(np.int8)
-#     screen = torch.from_numpy((reshaped_array / 128).astype(np.float32))
-#     return screen.unsqueeze(0)
-
-
-def unit_prepr_obs(obs):
-    cropped_obs = obs[1:176:2, ::2]
-    gray_truncated_obs = cropped_obs.sum(axis=2)  # to grayscale
-    indices = gray_truncated_obs == PACMAN_COLOR
-    gray_truncated_obs[gray_truncated_obs == PACMAN_COLOR] = 0
-    normalized_img = (gray_truncated_obs // 3 - 128).astype(np.int8)
-    return (normalized_img / 128).astype(np.float32)
+def extend_walls(img):
+    extension = np.array([[WALL_COLOR_GRAY for x in range(160)] for y in range(3)])
+    return np.concatenate([extension, img, extension])
 
 
 # def unit_prepr_obs(obs):
-#     gray_truncated_obs = obs.sum(axis=2)  # to grayscale
-#     indices = gray_truncated_obs == PACMAN_COLOR
-#     gray_truncated_obs[gray_truncated_obs == PACMAN_COLOR] = 0
-#     grayscale_img = gray_truncated_obs // 3
-#     screen = np.ascontiguousarray(grayscale_img, dtype=np.float32) / 255
-#     return resize(screen).view(210, 160)
+#     gray_img = cv2.cvtColor(obs, cv2.COLOR_RGB2GRAY)
+#     trimmed_img = gray_img[1:171]
+#     extended_img = extend_walls(trimmed_img)
+#     canvas = extended_img[1::4, 1::4]
+#     pills_walls = canvas.copy()
+#     pills_walls[canvas != WALL_COLOR_GRAY] = 0
+#     pacman_monsters = canvas.copy()
+#     pacman_monsters[(canvas == WALL_COLOR_GRAY) | (canvas == BACKGROUND_GRAY)] = 0
+#     pacman = pacman_monsters.copy()
+#     monsters = pacman_monsters.copy()
+#     pacman[pacman_monsters != PACMAN_COLOR_GRAY] = 0
+#     monsters[pacman_monsters == PACMAN_COLOR_GRAY] = 0
+#     return np.stack(
+#         [
+#             pills_walls.astype(np.float32),
+#             pacman.astype(np.float32),
+#             monsters.astype(np.float32),
+#         ]
+#     )
 
 
-def preprocessing_observation(observations, new_obs):
+def unit_prepr_obs(obs):
+    gray_img = cv2.cvtColor(obs, cv2.COLOR_RGB2GRAY)
+    trimmed_img = gray_img[1:171]
+    extended_img = extend_walls(trimmed_img)
+    final_img = extended_img[1::4, 1::4]
+    return np.stack([final_img.astype(np.float32)])
+
+
+def preprocess_observation(observations, new_obs):
     for i in range(3):
-        observations[3 - i, :, :] = observations[2 - i, :, :]
-    observations[0, :, :] = unit_prepr_obs(new_obs)
-    screen = torch.from_numpy(observations)
+        observations[3 - i] = observations[2 - i]
+    observations[0] = unit_prepr_obs(new_obs)
+    state = np.concatenate(observations)
+    screen = torch.from_numpy(state)
     return screen.unsqueeze(0)
 
 
 def init_obs(env):
-    return np.stack([unit_prepr_obs(env.step(0)[0]) for i_step in range(4)][::-1])
+    return [unit_prepr_obs(env.step(0)[0]) for i_step in range(4)][::-1]
+
+
+# def unit_prepr_obs(obs):
+#     cropped_img = obs[1:176:2, ::2]
+#     gray_truncated_img = cv2.cvtColor(cropped_img, cv2.COLOR_RGB2GRAY)
+#     gray_truncated_img[gray_truncated_img == PACMAN_COLOR_GRAY] = 0
+#     return gray_truncated_img.astype(np.float32)
+#
+#
+# def preprocess_observation(observations, new_obs):
+#     for i in range(3):
+#         observations[3 - i, :, :] = observations[2 - i, :, :]
+#     observations[0, :, :] = unit_prepr_obs(new_obs)
+#     screen = torch.from_numpy(observations)
+#     return screen.unsqueeze(0)
+#
+#
+# def init_obs(env):
+#     return np.stack([unit_prepr_obs(env.step(0)[0]) for i_step in range(4)][::-1])

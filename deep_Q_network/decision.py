@@ -1,10 +1,12 @@
 import random, math, torch
 from .parameters import EPS_MAX, EPS_MIN, EPS_DECAY, N_ACTIONS, device
+from utils.utils import ACTIONS, REVERSED
 
 
 class DecisionMaker:
     def __init__(self, steps_done, policy_DQN):
         self.steps_done = steps_done
+        self.old_action = 3
 
     def select_action(self, state, policy_DQN, display, learn_counter):
         sample = random.random()
@@ -18,6 +20,7 @@ class DecisionMaker:
             return q_values.max(1)[1].view(1, 1)
         else:
             # Random action
-            return torch.tensor(
-                [[random.randrange(N_ACTIONS)]], device=device, dtype=torch.long
-            )
+            action = random.randrange(N_ACTIONS)
+            while action == REVERSED[self.old_action]:
+                action = random.randrange(N_ACTIONS)
+            return torch.tensor([[action]], device=device, dtype=torch.long)
