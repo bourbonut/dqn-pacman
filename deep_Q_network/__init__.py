@@ -1,7 +1,7 @@
 from .parameters import *
 from .preprocessing import preprocess_observation, init_obs
 
-from .model import optimize_model, DQN
+from .model import DQN
 from .decision import DecisionMaker
 from .memory import ReplayMemory
 

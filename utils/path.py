@@ -1,14 +1,6 @@
 from pathlib import Path
 
-ABS_PATH = Path().absolute()
-RESULTS_PATH = ABS_PATH / "results"
-
-
-def create(path):
-    if not (path.exists()):
-        path.mkdir()
-        print('Folder "{}" created.'.format(path))
-
+RESULTS_PATH = Path().absolute() / "results"
 
 def working_path(isstreaming, offset=0):
     if isstreaming:

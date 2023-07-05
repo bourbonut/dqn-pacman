@@ -45,31 +45,3 @@ class DQN(nn.Module):
         x = F.relu(self.hidden1(x))
         x = F.relu(self.hidden2(x))
         return self.output(x)
-
-
-def optimize_model(policy_DQN, target_DQN, memory, optimizer, display, learn_counter, device):
-    if len(memory) < BATCH_SIZE:
-        return learn_counter
-    learn_counter += 1
-    states, actions, rewards, next_states, dones = memory.sample()
-
-    predicted_targets = policy_DQN(states).gather(1, actions)
-
-    target_values = target_DQN(next_states).detach().max(1)[0]
-    labels = rewards + DISCOUNT_RATE * (1 - dones.squeeze(1)) * target_values
-
-    criterion = torch.nn.SmoothL1Loss()
-    loss = criterion(predicted_targets, labels.detach().unsqueeze(1)).to(device)
-    display.data.losses.append(loss.item())
-
-    optimizer.zero_grad()
-    loss.backward()
-    for param in policy_DQN.parameters():
-       param.grad.data.clamp_(-1, 1)
-    optimizer.step()
-
-    # # Softmax update
-    # for target_param, local_param in zip(target_DQN.parameters(), policy_DQN.parameters()):
-    #     target_param.data.copy_(TAU * local_param.data + (1 - TAU) * target_param.data)
-
-    return learn_counter

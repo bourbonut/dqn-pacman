@@ -1,9 +1,7 @@
-import streamlit as st
 from deep_Q_network import *
 from utils import *
 from utils.parser import args
 
-torch.autograd.set_detect_anomaly(True)
 optimization = lambda it, r: it % K_FRAME == 0 and r  # or r in (-10, 50, 200)
 
 episodes = 0
