@@ -118,12 +118,12 @@ class Buffer:
         img = base64.b64encode(img_io.getvalue()).decode('ascii')       
         data = {
             "image": img,
-            "losses_raw": {"y": self.losses.raw},
-            "rewards_mean": {"y": self.rewards.mean},
-            "qvalues_mean": {"y": self.qvalues.mean},
-            "rewards_raw": {"y": self.rewards.raw},        
-            "rewards_total": {"y": self.rewards.total},
-            "qvalues_total": {"y": self.qvalues.total},
+            "losses_raw":    {"x": list(range(len(self.losses.raw))),    "y": self.losses.raw,    "xmax": len(self.losses.raw),    "ymin": min(self.losses.raw, default=0),    "ymax": max(self.losses.raw, default=0)},
+            "rewards_mean":  {"x": list(range(len(self.rewards.mean))),  "y": self.rewards.mean,  "xmax": len(self.rewards.mean),  "ymin": min(self.rewards.mean, default=0),  "ymax": max(self.rewards.mean, default=0)},
+            "qvalues_mean":  {"x": list(range(len(self.qvalues.mean))),  "y": self.qvalues.mean,  "xmax": len(self.qvalues.mean),  "ymin": min(self.qvalues.mean, default=0),  "ymax": max(self.qvalues.mean, default=0)},
+            "rewards_raw":   {"x": list(range(len(self.rewards.raw))),   "y": self.rewards.raw,   "xmax": len(self.rewards.raw),   "ymin": min(self.rewards.raw, default=0),   "ymax": max(self.rewards.raw, default=0)},
+            "rewards_total": {"x": list(range(len(self.rewards.total))), "y": self.rewards.total, "xmax": len(self.rewards.total), "ymin": min(self.rewards.total, default=0), "ymax": max(self.rewards.total, default=0)},
+            "qvalues_total": {"x": list(range(len(self.qvalues.total))), "y": self.qvalues.total, "xmax": len(self.qvalues.total), "ymin": min(self.qvalues.total, default=0), "ymax": max(self.qvalues.total, default=0)},
         }
         return json.dumps(data)
 

@@ -23,10 +23,6 @@ function zip(arrays) {
     });
 }
 
-function range(array) {
-  return [...Array(array.length).keys()]
-}
-
 function lineChart(svg_id, data){
   var svg = d3.select("#" + svg_id)
     .append("svg")
@@ -89,7 +85,6 @@ function lineChart(svg_id, data){
 
 function update(svg, line, x, y, data) {
   // Create new data with the selection
-  data.x = range(data.y);
   var keys = Object.keys(data);
   var data_ready = zip(data).map(
     e => Object.fromEntries(
@@ -98,31 +93,31 @@ function update(svg, line, x, y, data) {
   );
 
   // Update domains and axis
-  var xmax = data.x.reduce((a, b) => Math.max(a, b), 0);
-  var ymin = data.y.reduce((a, b) => Math.min(a, b), 0);
-  var ymax = data.y.reduce((a, b) => Math.max(a, b), 0);
+  var xmax = data.xmax;
+  var ymin = data.ymin;
+  var ymax = data.ymax;
 
   x.domain([0, xmax]).nice();
   y.domain([ymin, ymax]).nice();
   svg.selectAll("g.xaxis").
-      transition().
-      duration(50).
-      ease(d3.easePoly).
+      // transition().
+      // duration(50).
+      // ease(d3.easePoly).
       call(d3.axisBottom(x).ticks(10, "s"));
   svg.selectAll("g.yaxis").
-      transition().
-      duration(50).
-      ease(d3.easePoly).
+      // transition().
+      // duration(50).
+      // ease(d3.easePoly).
       call(d3.axisLeft(y).ticks(10, "s"));
 
   // Give these new data to update line
   line
     .datum(data_ready)
-    .transition()
-    .duration(2)
-    .ease(d3.easePoly)
+    // .transition()
+    // .duration(2)
+    // .ease(d3.easePoly)
     .attr("d", d3.line()
-      .x(function(d) { return x(d.x) }) // .x due to getDataFilter
+      .x(function(d) { return x(d.x) })
       .y(function(d) { return y(d.y) })
     )
 }
