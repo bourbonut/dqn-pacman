@@ -7,11 +7,38 @@ const svg_ids = [
   "qvalues_total",
 ];
 
+const xlabels = {
+  "losses_raw": "Steps",
+  "rewards_mean": "Episodes",
+  "qvalues_mean": "Episodes",
+  "rewards_raw": "Steps",
+  "rewards_total": "Episodes",
+  "qvalues_total": "Episodes",
+}
+
+const ylabels = {
+  "losses_raw": "Losses",
+  "rewards_mean": "Reward Mean",
+  "qvalues_mean": "Q Value Mean",
+  "rewards_raw": "Rewards",
+  "rewards_total": "Total Of Rewards",
+  "qvalues_total": "Total Of Q Values",
+}
+
+const colors = {
+  "losses_raw": "#357266",
+  "rewards_mean": "#007ea7",
+  "qvalues_mean": "yellow",
+  "rewards_raw": "#007ea7",
+  "rewards_total": "#007ea7",
+  "qvalues_total": "yellow",
+}
+
 var data = Object.fromEntries(
   svg_ids.map(svg_id => [svg_id, {"x":[], "y":[]}])
 );
 
-const margin = {top: 30, right: 250, bottom: 50, left: 70},
+const margin = {top: 30, right: 30, bottom: 50, left: 80},
   width = 480
   height = 270
 
@@ -45,28 +72,36 @@ function lineChart(svg_id, data){
     .attr("class", "xaxis")
     .attr("transform", "translate(0," + height + ")")
     .call(d3.axisBottom(x).ticks(10, "s"));
-  var xlabel = svg.append("text")
+  svg.append("text")
       .attr("class", "xlabel")
       .attr("text-anchor", "middle")
       .attr("x", width / 2)
       .attr("y", height + 35)
-      .text("x")
+      .attr("fill", "white")
+      .attr("stroke", "none")
+      .text(xlabels[svg_id]);
 
   // Add y axis and y label
   var ymin = data.y.reduce((a, b) => Math.min(a, b), 0);
   var ymax = data.y.reduce((a, b) => Math.max(a, b), 0);
-  var y = d3.scaleLinear().domain([ymin, ymax]).range([ height, 0 ]).nice();
+  var y = d3.scaleLinear().domain([ymin, ymax]).range([ height, 0 ]);
   svg.append("g")
     .attr("class", "yaxis")
-    .call(d3.axisLeft(y).ticks(10, "s"));
+    .call(d3.axisLeft(y));
 
-  var ylabel = svg.append("text")
+  svg.append("text")
       .attr("class", "ylabel")
       .attr("text-anchor", "middle")
       .attr("x", -height / 2)
       .attr("y", -2 * margin.left / 3)
       .attr("transform", "rotate(-90)")
-      .text("y")
+      .attr("fill", "white")
+      .attr("stroke", "none")
+      .text(ylabels[svg_id]);
+
+  svg.selectAll("path.domain").attr("stroke", "white");
+  svg.selectAll("g.tick").selectAll("line").attr("stroke", "white");
+  svg.selectAll("g.tick").selectAll("text").attr("fill", "white").attr("stroke", "none");
 
   var line = svg
     .append('g')
@@ -76,7 +111,7 @@ function lineChart(svg_id, data){
         .x(function(d) { return x(d.x) })
         .y(function(d) { return y(d.y) })
       )
-      .attr("stroke", "blue" )
+      .attr("stroke", colors[svg_id] )
       .style("stroke-width", 2)
       .style("fill", "none")
 
@@ -98,7 +133,7 @@ function update(svg, line, x, y, data) {
   var ymax = data.ymax;
 
   x.domain([0, xmax]).nice();
-  y.domain([ymin, ymax]).nice();
+  y.domain([ymin, ymax]);
   svg.selectAll("g.xaxis").
       // transition().
       // duration(50).
@@ -108,7 +143,7 @@ function update(svg, line, x, y, data) {
       // transition().
       // duration(50).
       // ease(d3.easePoly).
-      call(d3.axisLeft(y).ticks(10, "s"));
+      call(d3.axisLeft(y));
 
   // Give these new data to update line
   line
@@ -120,6 +155,8 @@ function update(svg, line, x, y, data) {
       .x(function(d) { return x(d.x) })
       .y(function(d) { return y(d.y) })
     )
+  svg.selectAll("g.tick").selectAll("line").attr("stroke", "white");
+  svg.selectAll("g.tick").selectAll("text").attr("fill", "white").attr("stroke", "none");
 }
 
 var elements = Object.fromEntries(
