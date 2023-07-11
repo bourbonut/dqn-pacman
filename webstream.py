@@ -27,6 +27,7 @@ async def hello():
 async def ws():
     i = 0
     for _ in datahandler.run():
+        # buffer.json()
         await websocket.send(buffer.json())
         i += 1
         if i == 10000:
@@ -34,3 +35,11 @@ async def ws():
 
 if __name__ == "__main__":
     app.run(port=5000)
+
+# i = 0
+# for _ in datahandler.run():
+#     buffer.json()
+#     # await websocket.send(buffer.json())
+#     i += 1
+#     if i == 10000:
+#         raise

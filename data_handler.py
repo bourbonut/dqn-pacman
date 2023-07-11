@@ -60,7 +60,7 @@ class GeneralData:
         self.total.append(sum(self.raw))
 
     def clear(self):
-        self.raw.clear()
+        self.raw = []
 
     def append(self, item):
         self.raw.append(item)
@@ -110,20 +110,26 @@ class Buffer:
             pickle.dump(list(self) + [self.successes], file)
         print(f"Episode {self.episodes} saved.")
 
+    def parse(self, data):
+        return {
+            "x": list(range(len(data))),
+            "y": data,
+            "xmax": len(data),
+            "ymin": min(data, default=0),
+            "ymax": max(data, default=0)
+        }
+
     def json(self):   
-        image = Image.fromarray(self.image)
-        img_io = io.BytesIO()
-        image.save(img_io, "png", quality=100)
-        img_io.seek(0)
-        img = base64.b64encode(img_io.getvalue()).decode('ascii')       
+        alpha = np.ones((210, 160, 1), dtype=np.int8) * 255
+        img = np.concatenate((self.image, alpha), axis=-1).reshape(210 * 160 * 4)
         data = {
-            "image": img,
-            "losses_raw":    {"x": list(range(len(self.losses.raw))),    "y": self.losses.raw,    "xmax": len(self.losses.raw),    "ymin": min(self.losses.raw, default=0),    "ymax": max(self.losses.raw, default=0)},
-            "rewards_mean":  {"x": list(range(len(self.rewards.mean))),  "y": self.rewards.mean,  "xmax": len(self.rewards.mean),  "ymin": min(self.rewards.mean, default=0),  "ymax": max(self.rewards.mean, default=0)},
-            "qvalues_mean":  {"x": list(range(len(self.qvalues.mean))),  "y": self.qvalues.mean,  "xmax": len(self.qvalues.mean),  "ymin": min(self.qvalues.mean, default=0),  "ymax": max(self.qvalues.mean, default=0)},
-            "rewards_raw":   {"x": list(range(len(self.rewards.raw))),   "y": self.rewards.raw,   "xmax": len(self.rewards.raw),   "ymin": min(self.rewards.raw, default=0),   "ymax": max(self.rewards.raw, default=0)},
-            "rewards_total": {"x": list(range(len(self.rewards.total))), "y": self.rewards.total, "xmax": len(self.rewards.total), "ymin": min(self.rewards.total, default=0), "ymax": max(self.rewards.total, default=0)},
-            "qvalues_total": {"x": list(range(len(self.qvalues.total))), "y": self.qvalues.total, "xmax": len(self.qvalues.total), "ymin": min(self.qvalues.total, default=0), "ymax": max(self.qvalues.total, default=0)},
+            "image": img.tolist(),
+            "losses_raw":    self.parse(self.losses.raw),
+            "rewards_mean":  self.parse(self.rewards.mean),
+            "qvalues_mean":  self.parse(self.qvalues.mean),
+            "rewards_raw":   self.parse(self.rewards.raw),
+            "rewards_total": self.parse(self.rewards.total),
+            "qvalues_total": self.parse(self.qvalues.total),
         }
         return json.dumps(data)
 
@@ -307,5 +313,7 @@ if __name__ == "__main__":
     buffer = Buffer()
     datahandler = DataHandler(env, policy, target, memory, buffer)
     generator = datahandler.run()
+    # for i in range(10_000):
+    #     next(generator)
     # next_buffer = next(generator)
     # print(buffer)

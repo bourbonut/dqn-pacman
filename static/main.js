@@ -38,6 +38,14 @@ var data = Object.fromEntries(
   svg_ids.map(svg_id => [svg_id, {"x":[], "y":[]}])
 );
 
+var canvas = document.createElement('canvas');
+var ctx = canvas.getContext('2d');
+
+canvas.width = 160;
+canvas.height = 210;
+// create imageData object
+var idata = ctx.createImageData(160, 210);
+
 const margin = {top: 30, right: 30, bottom: 50, left: 80},
   width = 480
   height = 270
@@ -169,16 +177,18 @@ let socket = new WebSocket("ws://localhost:5000/ws"); // 8765
 
 socket.onopen = function(e) {
   console.log("[open] Connection established");
-  // console.log("Sending to server");
-  // socket.send("My name is John");
 };
 
 socket.onmessage = function(event) {
-  data = JSON.parse(event.data);
-  document.getElementById("pacman").src = "data:image/png;base64," + data.image;
+  var received_data = JSON.parse(event.data);
+  // set our buffer as source
+  idata.data.set(received_data.image);
+  // update canvas with new data
+  ctx.putImageData(idata, 0, 0);
+  document.getElementById("pacman").src = canvas.toDataURL();
   for (svg_id of svg_ids){
     var element = elements[svg_id];
-    update(element.svg, element.line, element.x, element.y, data[svg_id]);
+    update(element.svg, element.line, element.x, element.y, received_data[svg_id]);
   }
 };
 
@@ -186,8 +196,6 @@ socket.onclose = function(event) {
   if (event.wasClean) {
     console.log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
   } else {
-    // e.g. server process killed or network down
-    // event.code is usually 1006 in this case
     console.log('[close] Connection died');
   }
 };
