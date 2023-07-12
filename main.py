@@ -194,7 +194,25 @@ if __name__ == "__main__":
 
     # Set buffer where data for post processing is stored
     buffer = Buffer()
-    datahandler = DataHandler(env, policy, target, memory, buffer, paths, save=True)
-    generator = datahandler.run()
-    for _ in generator:
-        continue
+    datahandler = DataHandler(env, policy, target, memory, buffer, paths, save=not args.stream)
+    if args.stream:
+        from quart import Quart, render_template, websocket
+        app = Quart(__name__)
+
+        @app.route("/")
+        async def hello():
+            return await render_template("index.html")
+
+        @app.websocket("/ws")
+        async def ws():
+            i = 0
+            for _ in datahandler.run():
+                await websocket.send(buffer.json())
+                i += 1
+                if i == 10000:
+                    raise
+        app.run(port=5000)
+    else:
+        generator = datahandler.run()
+        for _ in generator:
+            continue
