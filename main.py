@@ -1,137 +1,200 @@
-from deep_Q_network import *
-from utils import *
+import numpy as np
+import torch
+from torch import optim
+import gym
+
+from deep_Q_network import parameters as params
+from deep_Q_network.parameters import EPS_MAX, EPS_MIN, EPS_DECAY
+from deep_Q_network import device, init_obs, preprocess_observation
+from deep_Q_network import DQN, ReplayMemory, Buffer, ALEInterface, Pacman
+from utils import start, REWARDS, ACTIONS, REVERSED, transform_reward, save_model, save_plot
 from utils.parser import args
 
-optimization = lambda it, r: it % K_FRAME == 0 and r  # or r in (-10, 50, 200)
+import random
 
-episodes = 0
-learn_counter = 0
-best_score = 0
+class DataHandler:
 
-ABS_PATH = Path().absolute()
-RESULTS_PATH = ABS_PATH / "results"
-PATH_MODELS = start(args)
+    def __init__(self, env, policy, target, memory, buffer, paths, save=False):
+        # Arguments
+        self.env = env
+        self.policy = policy
+        self.target = target
+        self.memory = memory
+        self.buffer = buffer
+        self.buffer.episodes = 1
+        self.paths = paths
+        self.save = save
+ 
+        # Common variables
+        self.episodes = 0
+        self.learn_counter = 0
+        self.best_score = 0
+        self.lives = 3
+        self.jump_dead_step = False
+        self.old_action = 3
+        self.steps_done = 0
 
-# Set environment
-ale = ALEInterface()
-ale.loadROM(Pacman)
+        # Set optimizer
+        self.optimizer = optim.SGD(
+            self.policy.parameters(),
+            lr=params.LEARNING_RATE,
+            momentum=params.MOMENTUM,
+            nesterov=True,
+        )
+    
+    def optimization(self, reward):
+        return self.steps_done % params.K_FRAME == 0 and reward # or reward in (-10, 50, 200)
 
-env = gym.make("MsPacman-v0")
+    def avoid_beginning_steps(self):
+        for i_step in range(params.AVOIDED_STEPS):
+            obs, reward, done, info = self.env.step(3)
 
-# Set neural networks
-policy_DQN = DQN(N_ACTIONS).to(device)
-target_DQN = DQN(N_ACTIONS).to(device)
-target_DQN.load_state_dict(policy_DQN.state_dict())
+    def select_action(self, state):
+        sample = random.random()
+        eps_threshold = max(
+            EPS_MIN,
+            EPS_MAX - (EPS_MAX - EPS_MIN) * self.learn_counter / EPS_DECAY
+        )
+        self.steps_done += 1
+        with torch.no_grad():
+            q_values = self.policy(state)
+        self.buffer.qvalues.append(q_values.max(1)[0].item())
+        if sample > eps_threshold:
+            # Optimal action
+            return q_values.max(1)[1].view(1, 1)
+        else:
+            # Random action
+            action = random.randrange(params.N_ACTIONS)
+            while action == REVERSED[self.old_action]:
+                action = random.randrange(params.N_ACTIONS)
+            return torch.tensor([[action]], device=device, dtype=torch.long)
 
-# Set optimizer
-# optimizer = optim.Adam(policy_DQN.parameters(), lr=LEARNING_RATE)
-optimizer = optim.SGD(
-    policy_DQN.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True
-)
-# optimizer = optim.RMSprop(policy_DQN.parameters(), lr=LEARNING_RATE)
+    def optimize_model(self):
+        if len(self.memory) < params.BATCH_SIZE:
+            return
+        self.learn_counter += 1
+        states, actions, rewards, next_states, dones = self.memory.sample()
 
-# Set memory
-memory = ReplayMemory(REPLAY_MEMORY_SIZE, BATCH_SIZE)
+        predicted_targets = self.policy(states).gather(1, actions)
 
-# Set decision maker
-dmaker = DecisionMaker(0, policy_DQN)
-display = Display(args.stream, args.image)
+        target_values = self.target(next_states).detach().max(1)[0]
+        labels = rewards + params.DISCOUNT_RATE * (1 - dones.squeeze(1)) * target_values
 
-# one_game = [] # useful to save a video
+        criterion = torch.nn.SmoothL1Loss()
+        loss = criterion(predicted_targets, labels.detach().unsqueeze(1)).to(device)
+        self.buffer.losses.append(loss.item())
 
-# Main loop
-while True:
-    if dmaker.steps_done > MAX_FRAMES:
-        break
-    episodes += 1
+        self.optimizer.zero_grad()
+        loss.backward()
+        for param in self.policy.parameters():
+           param.grad.data.clamp_(-1, 1)
+        self.optimizer.step()
+     
+    def run(self):
+        while True:
+            if self.steps_done > params.MAX_FRAMES:
+                save_model(self.policy.state_dict(), "policy", self.episodes)
+                save_model(self.target.state_dict(), "target", self.episodes)
+                break
+            for _ in self.run_one_episode():
+                yield
 
-    obs = env.reset()
-    lives = 3
-    jump_dead_step = False
-    old_action = 0
+    def run_one_episode(self):
+        self.episodes += 1
+        obs = self.env.reset()
+        lives = 3
+        jump_dead_step = False
 
-    # Avoid beginning steps of the game
-    for i_step in range(AVOIDED_STEPS):
-        obs, reward, done, info = env.step(3)
+        # Avoid beginning steps of the game
+        self.avoid_beginning_steps()
+        # Initialization first observations
+        observations = init_obs(self.env)
+        obs, reward, done, info = self.env.step(3)
+        state = preprocess_observation(observations, obs)
 
-    observations = init_obs(env)
-    obs, reward, done, info = env.step(3)
-    state = preprocess_observation(observations, obs)
+        got_reward = False
+        old_action = 3
+        no_move_count = 0
+        while True:
+            if self.steps_done > params.MAX_FRAMES:
+                break
+            # epsilon greedy decision maker
+            action = self.select_action(state)
+            action_ = ACTIONS[old_action][action.item()]
 
-    got_reward = False
+            obs, reward_, done, info = self.env.step(action_)
+            self.buffer.image = obs.copy()
+            reward = transform_reward(reward_)
 
-    old_action = 3
+            # update_all = False
+            if info["lives"] < lives:
+                lives -= 1
+                jump_dead_step = True
+                got_reward = False
+                reward += REWARDS["lose"]
+                self.old_action = 3
+                # update_all = True
 
-    no_move_count = 0
-    while True:
-        if dmaker.steps_done > MAX_FRAMES:
-            break
-        # epsilon greedy decision maker
-        action = dmaker.select_action(state, policy_DQN, display, learn_counter)
-        action_ = ACTIONS[old_action][action.item()]
+            if done and lives > 0:
+                reward += REWARDS["win"]
 
-        obs, reward_, done, info = env.step(action_)
-        display.obs = obs.copy()
-        reward = transform_reward(reward_)
+            got_reward = got_reward or reward != 0
+            self.buffer.rewards.append(reward)
+            reward = torch.tensor([reward], device=device)
 
-        update_all = False
-        if info["lives"] < lives:
-            lives -= 1
-            jump_dead_step = True
-            got_reward = False
-            reward += REWARDS["lose"]
-            dmaker.old_action = 3
-            update_all = True
+            old_action = action_
+            if reward != 0:
+                self.old_action = action.item()
 
-        if done and lives > 0:
-            reward += REWARDS["win"]
+            next_state = preprocess_observation(observations, obs)
 
-        got_reward = got_reward or reward != 0
-        display.data.rewards.append(reward)
-        reward = torch.tensor([reward], device=device)
+            if got_reward:
+                self.memory.push(state, action, reward, next_state, done)
 
-        old_action = action_
-        if reward != 0:
-            dmaker.old_action = action.item()
+            state = next_state
+            if self.optimization(got_reward):
+                self.optimize_model()
 
-        next_state = preprocess_observation(observations, obs)
+            if self.steps_done % params.TARGET_UPDATE == 0:
+                self.target.load_state_dict(self.policy.state_dict())
 
-        if got_reward:
-            memory.push(state, action, reward, next_state, done)
+            # display.stream(update_all)
+            if done:
+                self.buffer.successes += info["lives"] > 0
+                break
+            if jump_dead_step:
+                for i_dead in range(params.DEAD_STEPS):
+                    obs, reward, done, info = self.env.step(0)
+                jump_dead_step = False
+            yield
 
-        state = next_state
-        if optimization(dmaker.steps_done, got_reward):
-            learn_counter = optimize_model(
-                policy_DQN,
-                target_DQN,
-                memory,
-                optimizer,
-                display,
-                learn_counter,
-                device,
-            )
 
-        if dmaker.steps_done % TARGET_UPDATE == 0:
-            target_DQN.load_state_dict(policy_DQN.state_dict())
+        if self.episodes % params.SAVE_MODEL == 0 and self.save:
+            save_model(self.paths.path_models, self.policy.state_dict(), "policy", self.episodes)
+            save_model(self.paths.path_models, self.target.state_dict(), "target", self.episodes)
+            save_plot(self.paths.path_plots, self.buffer)
+            buffer.save(self.paths.path_data)
 
-        display.stream(update_all)
-        if done:
-            display.data.successes += info["lives"] > 0
-            torch.cuda.empty_cache()
-            break
-        if jump_dead_step:
-            for i_dead in range(DEAD_STEPS):
-                obs, reward, done, info = env.step(0)
-            jump_dead_step = False
-        torch.cuda.empty_cache()
+        self.buffer.update()
+        yield
 
-    if episodes % SAVE_MODEL == 0:
-        torch.save(policy_DQN.state_dict(), PATH_MODELS / f"policy-model-{episodes}.pt")
-        torch.save(target_DQN.state_dict(), PATH_MODELS / f"target-model-{episodes}.pt")
-        display.save()
 
-    display.data.round()
+if __name__ == "__main__":
+    # Get paths
+    paths = start(args)
+    # Set environment
+    ale = ALEInterface()
+    ale.loadROM(Pacman)
+    env = gym.make("MsPacman-v0")
 
-torch.save(policy_DQN.state_dict(), PATH_MODELS / f"policy-model-final.pt")
-torch.save(target_DQN.state_dict(), PATH_MODELS / f"target-model-final.pt")
-print("Complete")
+    # Set Deep Q Networks and memory
+    policy = DQN(params.N_ACTIONS).to(device)
+    target = DQN(params.N_ACTIONS).to(device)
+    memory = ReplayMemory(params.REPLAY_MEMORY_SIZE, params.BATCH_SIZE)
+
+    # Set buffer where data for post processing is stored
+    buffer = Buffer()
+    datahandler = DataHandler(env, policy, target, memory, buffer, paths, save=True)
+    generator = datahandler.run()
+    for _ in generator:
+        continue

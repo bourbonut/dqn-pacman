@@ -1,5 +1,16 @@
 from .path import RESULTS_PATH, working_path
-from .utils import transform_reward, REWARDS, ACTIONS, REVERSED
+from .rewards import transform_reward, REWARDS
+from .actions import ACTIONS, REVERSED
+from .save_functions import save_model, save_plot
+
+from collections import namedtuple
+try:
+    from rich import print 
+except ImportError:
+    import warnings
+    warnings.warn("If you want colors, you must install rich (pip install rich)", UserWarning, 2)
+
+Paths = namedtuple("Paths", ("path_models", "path_plots", "path_data"))
 
 SUBFOLDERS = ["models", "plots", "recorded-data"]
 
@@ -33,4 +44,4 @@ def start(args):
             f"\tRecorded data : {path_data}"
         )
         print(message)
-    return path_models, path_plots, path_data
+    return Paths(path_models, path_plots, path_data)

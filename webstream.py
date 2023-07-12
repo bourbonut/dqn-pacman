@@ -1,10 +1,10 @@
-from data_handler import DataHandler, Buffer, args, start
-from data_handler import ALEInterface, Pacman, gym
-from data_handler import params, device, ReplayMemory, DQN
+from main import (
+    DataHandler, Buffer, args, start, ALEInterface, Pacman, gym, params, device, ReplayMemory, DQN
+)
 
 from quart import Quart, render_template, websocket
 
-PATH_MODELS, PATH_PLOTS, PATH_DATA = start(args)
+paths = start(args)
 # Set environment
 ale = ALEInterface()
 ale.loadROM(Pacman)
@@ -15,7 +15,7 @@ target = DQN(params.N_ACTIONS).to(device)
 memory = ReplayMemory(params.REPLAY_MEMORY_SIZE, params.BATCH_SIZE)
 
 buffer = Buffer()
-datahandler = DataHandler(env, policy, target, memory, buffer)
+datahandler = DataHandler(env, policy, target, memory, buffer, paths)
 
 app = Quart(__name__)
 
@@ -27,7 +27,6 @@ async def hello():
 async def ws():
     i = 0
     for _ in datahandler.run():
-        # buffer.json()
         await websocket.send(buffer.json())
         i += 1
         if i == 10000:
@@ -35,11 +34,3 @@ async def ws():
 
 if __name__ == "__main__":
     app.run(port=5000)
-
-# i = 0
-# for _ in datahandler.run():
-#     buffer.json()
-#     # await websocket.send(buffer.json())
-#     i += 1
-#     if i == 10000:
-#         raise
