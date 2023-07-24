@@ -181,11 +181,13 @@ socket.onopen = function(e) {
 
 socket.onmessage = function(event) {
   var received_data = JSON.parse(event.data);
+  // console.log(event.data);
   // set our buffer as source
-  idata.data.set(received_data.image);
+  // idata.data.set(received_data.image);
   // update canvas with new data
-  ctx.putImageData(idata, 0, 0);
-  document.getElementById("pacman").src = canvas.toDataURL();
+  // ctx.putImageData(idata, 0, 0);
+  // document.getElementById("pacman").src = canvas.toDataURL();
+  document.getElementById("pacman").src = "data:image/png;base64," + received_data.image;
   for (svg_id of svg_ids){
     var element = elements[svg_id];
     update(element.svg, element.line, element.x, element.y, received_data[svg_id]);

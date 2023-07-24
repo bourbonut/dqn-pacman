@@ -1,3 +1,4 @@
+import asyncio
 import numpy as np
 import torch
 from torch import optim
@@ -74,6 +75,7 @@ class DataHandler:
             return
         self.learn_counter += 1
         states, actions, rewards, next_states, dones = self.memory.sample()
+        # self.memory.sample()
 
         predicted_targets = self.policy(states).gather(1, actions)
 
@@ -126,14 +128,12 @@ class DataHandler:
             self.buffer.image = obs.copy()
             reward = transform_reward(reward_)
 
-            # update_all = False
             if info["lives"] < lives:
                 lives -= 1
                 jump_dead_step = True
                 got_reward = False
                 reward += REWARDS["lose"]
                 self.old_action = 3
-                # update_all = True
 
             if done and lives > 0:
                 reward += REWARDS["win"]
@@ -149,7 +149,13 @@ class DataHandler:
             next_state = preprocess_observation(observations, obs)
 
             if got_reward:
-                self.memory.push(state, action, reward, next_state, done)
+                self.memory.push(
+                    state.to("cpu"),
+                    action.to("cpu"),
+                    reward.to("cpu"),
+                    next_state.to("cpu"),
+                    done,
+                )
 
             state = next_state
             if self.optimization(got_reward):
@@ -158,7 +164,6 @@ class DataHandler:
             if self.steps_done % params.TARGET_UPDATE == 0:
                 self.target.load_state_dict(self.policy.state_dict())
 
-            # display.stream(update_all)
             if done:
                 self.buffer.successes += info["lives"] > 0
                 break
@@ -207,7 +212,9 @@ if __name__ == "__main__":
         async def ws():
             i = 0
             for _ in datahandler.run():
-                await websocket.send(buffer.json())
+                # buffer.json()
+                await websocket.send_json(buffer.json())
+                # await asyncio.wait(0.01)
                 i += 1
                 if i == 10000:
                     raise
