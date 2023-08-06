@@ -1,8 +1,8 @@
 from pathlib import Path
 
-RESULTS_PATH = Path().absolute() / "results"
+RESULTS_PATH = Path("results").absolute()
 
-def working_path(isstreaming, offset=0):
+def working_path(isstreaming: bool, offset:int=0):
     if isstreaming:
         working_dir = RESULTS_PATH / f"training-only-stream"
     else:

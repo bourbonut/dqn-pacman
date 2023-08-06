@@ -11,5 +11,5 @@ REWARDS = {
     "reverse": -2,
 }
 
-def transform_reward(reward):
+def transform_reward(reward: int):
     return log(reward, 1000) if reward > 0 else reward

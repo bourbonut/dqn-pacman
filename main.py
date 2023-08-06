@@ -1,4 +1,3 @@
-import asyncio
 import numpy as np
 import torch
 from torch import optim
@@ -14,6 +13,9 @@ from utils.parser import args
 import random
 
 class DataHandler:
+    """
+    Main class which trains the Deep Q Network
+    """
 
     def __init__(self, env, policy, target, memory, buffer, paths, save=False):
         # Arguments
@@ -210,14 +212,8 @@ if __name__ == "__main__":
 
         @app.websocket("/ws")
         async def ws():
-            i = 0
             for _ in datahandler.run():
-                # buffer.json()
                 await websocket.send_json(buffer.json())
-                # await asyncio.wait(0.01)
-                i += 1
-                if i == 10000:
-                    raise
         app.run(port=5000)
     else:
         generator = datahandler.run()

@@ -20,11 +20,11 @@ EPS_MAX = 1.0
 EPS_MIN = 0.1
 EPS_DECAY = 1_000_000
 TARGET_UPDATE = 8_000
-REPLAY_MEMORY_SIZE = 1 * 6_000
+REPLAY_MEMORY_SIZE = 2 * 6_000
 
 # Environment constants
 N_ACTIONS = 4
-AVOIDED_STEPS = 80  # At the beginning, there is a period of time where the game doesn't allowed the player to move Pacman
+AVOIDED_STEPS = 80  # at the beginning, there is a period of time where the game doesn't allowed the player to move Pacman
 DEAD_STEPS = 36  # frames to avoid when the agent dies
 K_FRAME = 2
 
@@ -35,4 +35,4 @@ MOMENTUM = 0.95
 
 # Algorithm constant
 MAX_FRAMES = 2_000_000
-SAVE_MODEL = 20
+SAVE_MODEL = 20 # episodes

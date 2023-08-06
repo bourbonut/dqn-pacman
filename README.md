@@ -124,16 +124,17 @@ python main.py --image
 
 #### Dynamic display
 
-This mode is useful when you want to see how the agent reacts and interacts with his environment.
+This mode is useful when you want to see how the agent reacts and interacts with its environment.
 
 To display the "dashboard", simply run :
 ```sh
-streamlit run main.py -- --stream
+python main.py --stream
 ```
+Then enter the URL `localhost:5000` in your browser.
 
 ![dashboard](./docs/board.png)
 
-**Note :** `streamlit` allows to display dynamically the game but for better performance, charts are updated only when the agent dies. It is recommended for a long training to not use this mode.
+**Note :**: It is recommended for a long training to not use this mode.
 
 ### Evaluation
 
@@ -161,7 +162,7 @@ You can find different flags to get what you want :
 .
 ├── deep_Q_network
 │   ├── __init__.py
-│   ├── decision.py # for decision making
+│   ├── buffer.py # buffer class used for websocket and for tracking training performances
 │   ├── memory.py # replay memory
 │   ├── model.py # dueling DQN and optimization (see the class for more details)
 │   ├── parameters.py # all parameters except how rewards are managed
@@ -171,14 +172,15 @@ You can find different flags to get what you want :
 ├── evaluation # only use by `eval.py`
 │   ├── __init__.py
 │   ├── parser.py
-│   ├── path.py # manage path
 │   └── utils.py
 ├── utils
 │   ├── __init__.py
-│   ├── display.py # to save data and display them with `matplotlib`
+│   ├── actions.py
+│   ├── opencv.py
 │   ├── parser.py
-│   ├── start.py # manage starting path
-│   └── utils.py
+│   ├── path.py
+│   ├── rewards.py
+│   └── save_functions.py
 ├── results
 │   └── training-[...]
 │       ├── models # folder with pytorch models
@@ -195,5 +197,5 @@ You can find different flags to get what you want :
 ├── eval.py # to evaluate the agent
 ├── main.py # to train the agent
 ├── README.md
-└── setup.py
+└── requirements.txt
 ```

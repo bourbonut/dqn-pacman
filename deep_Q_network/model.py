@@ -6,10 +6,6 @@ import torch
 from .parameters import BATCH_SIZE, DISCOUNT_RATE, device
 
 
-def my_rely(x):
-    return torch.maximum(x, torch.zeros_like(x))
-
-
 class DQN(nn.Module):
 
     CONV_N_MAPS = [4, 32, 32]

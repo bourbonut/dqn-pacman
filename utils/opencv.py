@@ -1,10 +1,12 @@
+import numpy as np
+from typing import List
 try:
     import cv2
     from .start import PATH_VIDEO
 except Exception as e:
     pass
 
-def save_run(one_game):
+def save_run(one_game: List[np.array]):
     frameSize = (160, 210)
     bin_loader = cv2.VideoWriter_fourcc(*"DIVX")  # Binary extension loader
     out = cv2.VideoWriter(str(PATH_VIDEO / "video.avi"), bin_loader, 15, frameSize)

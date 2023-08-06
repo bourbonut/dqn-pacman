@@ -1,5 +1,7 @@
 from matplotlib import pyplot as plt
 import torch
+from pathlib import PosixPath
+from deep_Q_network import DQN, Buffer
 
 try:
     from rich import print 
@@ -16,11 +18,11 @@ Y_LABELS = (
     "Total of max predicted Q value",
 )
 
-def save_model(path, model, name, version):
+def save_model(path: PosixPath, model: DQN, name: str, version: int):
     torch.save(model, path / f"{name}-model-{version}.pt")
     print(f"Model \"{name}\" (version {version}) saved.")
 
-def save_plot(path, buffer):
+def save_plot(path: PosixPath, buffer: Buffer):
     fig, axis = plt.subplots(2, 3, figsize=(16, 10))
     axis = axis.flatten()
     for ax, data in zip(axis, buffer):

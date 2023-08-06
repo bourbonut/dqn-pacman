@@ -26,7 +26,7 @@ const ylabels = {
 }
 
 const colors = {
-  "losses_raw": "#357266",
+  "losses_raw": "#FFA233",
   "rewards_mean": "#007ea7",
   "qvalues_mean": "yellow",
   "rewards_raw": "#007ea7",
@@ -38,17 +38,9 @@ var data = Object.fromEntries(
   svg_ids.map(svg_id => [svg_id, {"x":[], "y":[]}])
 );
 
-var canvas = document.createElement('canvas');
-var ctx = canvas.getContext('2d');
-
-canvas.width = 160;
-canvas.height = 210;
-// create imageData object
-var idata = ctx.createImageData(160, 210);
-
 const margin = {top: 30, right: 30, bottom: 50, left: 80},
-  width = 480
-  height = 270
+  width = (window.screen.width - 350) / 4.8;
+  height = width * 2 / 3
 
 function zip(arrays) {
     var keys = Object.keys(arrays);
@@ -181,12 +173,6 @@ socket.onopen = function(e) {
 
 socket.onmessage = function(event) {
   var received_data = JSON.parse(event.data);
-  // console.log(event.data);
-  // set our buffer as source
-  // idata.data.set(received_data.image);
-  // update canvas with new data
-  // ctx.putImageData(idata, 0, 0);
-  // document.getElementById("pacman").src = canvas.toDataURL();
   document.getElementById("pacman").src = "data:image/png;base64," + received_data.image;
   for (svg_id of svg_ids){
     var element = elements[svg_id];

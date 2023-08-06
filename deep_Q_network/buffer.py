@@ -90,15 +90,11 @@ class Buffer:
         }
 
     def json(self):
-        # alpha = np.ones((210, 160, 1), dtype=np.int8) * 255
-        # img = np.concatenate((self.image, alpha), axis=-1).reshape(210 * 160 * 4)
         image = Image.fromarray(self.image)
         buff = io.BytesIO()
         image.save(buff, "png", quality=100)
         buff.seek(0)
         img = base64.b64encode(buff.getvalue()).decode('ascii')
-        # data = {"image": img}
-        # img = base64.b64encode(self.image).decode('ascii')
         data = {
             "image": img,
             "losses_raw": self.parse(self.losses.raw),
@@ -109,4 +105,3 @@ class Buffer:
             "qvalues_total": self.parse(self.qvalues.total),
         }
         return data
-        # return orjson.dumps(data).decode('ascii')

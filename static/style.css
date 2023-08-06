@@ -4,7 +4,8 @@
 }
 
 body {
-  background: black;
+  background: steelblue;
+  background-image: url("/static/ms-pacman.png");
   stroke: white;
   fill: white;
   color: white;
@@ -31,49 +32,61 @@ img {
 .grid-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-gap: 10px;
+  grid-gap: 5px;
   grid-auto-rows: minmax(100px, auto);
   margin-right: 5%;
 }
 
 .grid-container h3 {
   position: relative;
-  transform: translateX(25%);
+  transform: translateX(15%);
 }
 
 .image{
   grid-column: 1;
   grid-row: 1 / 3;
   text-align: center;
-  transform: translateY(25%)
+  transform: translateY(20%)
 }
 
 .losses-raw{
   grid-column: 2;
   grid-row: 1;
+  background: rgba(50, 50, 70, 0.75);
+  backdrop-filter: blur(5px);
 }
 
 .rewards-mean{
   grid-column: 3;
   grid-row: 1;
+  background: rgba(50, 50, 70, 0.75);
+  backdrop-filter: blur(5px);
 }
 
 .qvalues-mean{
   grid-column: 4;
   grid-row: 1;
+  background: rgba(50, 50, 70, 0.75);
+  backdrop-filter: blur(5px);
 }
 
 .rewards-raw{
   grid-column: 2;
   grid-row: 2;
+  background: rgba(50, 50, 70, 0.75);
+  backdrop-filter: blur(5px);
 }
 
 .rewards-total{
   grid-column: 3;
   grid-row: 2;
+  background: rgba(50, 50, 70, 0.75);
+  backdrop-filter: blur(5px);
 }
 
 .qvalues-total{
   grid-column: 4;
   grid-row: 2;
+  background: rgba(50, 50, 70, 0.75);
+  backdrop-filter: blur(5px);
 }
