@@ -3,6 +3,9 @@ import torch
 from torch import optim
 import gym
 
+from rich.progress import Progress, BarColumn, TextColumn
+from rich.live import Live
+
 from deep_Q_network import parameters as params
 from deep_Q_network.parameters import EPS_MAX, EPS_MIN, EPS_DECAY
 from deep_Q_network import device, init_obs, preprocess_observation
@@ -95,13 +98,22 @@ class DataHandler:
         self.optimizer.step()
      
     def run(self):
-        while True:
-            if self.steps_done > params.MAX_FRAMES:
-                save_model(self.policy.state_dict(), "policy", self.episodes)
-                save_model(self.target.state_dict(), "target", self.episodes)
-                break
-            for _ in self.run_one_episode():
-                yield
+        progress = Progress(
+            "{task.description}",
+            BarColumn(),
+            TextColumn("[progress.percentage]{task.completed:,d}/{task.total:,d} \[{task.percentage:>3.0}%]")
+        )
+        task = progress.add_task("[blue]Completed Frames", total=params.MAX_FRAMES)
+        with Live(progress):
+            while True:
+                if self.steps_done > params.MAX_FRAMES:
+                    save_model(self.policy.state_dict(), "policy", self.episodes)
+                    save_model(self.target.state_dict(), "target", self.episodes)
+                    break
+                for _ in self.run_one_episode():
+                    yield
+                    if self.steps_done % 100 == 0:
+                        progress.advance(task, advance=100)
 
     def run_one_episode(self):
         self.episodes += 1
