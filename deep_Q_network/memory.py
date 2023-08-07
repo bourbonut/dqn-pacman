@@ -1,5 +1,6 @@
 from collections import namedtuple, deque
 import random, torch, numpy as np
+from functools import reduce
 
 from .parameters import device
 
@@ -30,7 +31,9 @@ class ReplayMemory:
         indices = random.sample(range(self.size), k=self.batch_size)
         exps = (self.states, self.actions, self.rewards, self.next_states)
         extract = lambda list_: [list_[i] for i in indices]
-        states, actions, rewards, next_states = map(torch.cat, map(extract, exps))
+        functions = (extract, np.vstack, torch.from_numpy)
+        states, actions, rewards, next_states = reduce(lambda x, y: map(y, x), functions, exps)
+        rewards = rewards.reshape(-1)
         dones = torch.from_numpy(np.vstack(extract(self.dones)).astype(np.uint8))
         tofloat = lambda x: x.float().to(device)
         tolong = lambda x: x.long().to(device)

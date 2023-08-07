@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ms Pacman DQN</title>
+    <link rel="stylesheet" href="/static/style.css"></link>
+    <script src="https://d3js.org/d3.v4.js"></script>
+</head>
+<body>
+    <div class="container">
+      <object width="100" data="{{url_for('static', filename='pacman.svg')}}"></object>
+      <h1>Ms Pacman DQN</h1>
+    </div>
+    <div class="grid-container">
+      <div class="image">
+        <img id="pacman"></img>
+      </div>
+      <div class="losses-raw">
+        <h3>Losses of the current episode</h3>
+        <div id="losses_raw"></div>
+      </div>
+      <div class="rewards-raw">
+        <h3>Rewards of the current episode</h3>
+        <div id="rewards_raw"></div>
+      </div>
+      <div class="rewards-mean">
+        <h3>Mean of rewards over episodes</h3>
+        <div id="rewards_mean"></div>
+      </div>
+      <div class="qvalues-mean">
+        <h3>Mean of Q Values over episodes</h3>
+        <div id="qvalues_mean"></div>
+      </div>
+      <div class="rewards-total">
+        <h3>Total of rewards over episodes</h3>
+        <div id="rewards_total"></div>
+      </div>
+      <div class="qvalues-total">
+        <h3>Total of Q Values over episodes</h3>
+        <div id="qvalues_total"></div> 
+      </div>
+    </div>
+    <script src="{{url_for('static', filename='main.js')}}"></script>
+</body>
+</html>

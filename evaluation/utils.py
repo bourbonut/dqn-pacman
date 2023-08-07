@@ -1,6 +1,9 @@
 import pickle, torch, random
 from utils import ACTIONS
-from deep_Q_network import *
+from deep_Q_network import parameters as params
+from deep_Q_network import device, init_obs, preprocess_observation
+from deep_Q_network import DQN, Buffer, ALEInterface, Pacman
+import gym
 
 def moving_average(values, n):
     offset = (n - 1) // 2
@@ -107,13 +110,12 @@ def record(ep, path):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    agent = DQN(N_ACTIONS).to(device)
+    agent = DQN(params.N_ACTIONS).to(device)
 
     path_model = path / "models" / f"policy-model-{ep}.pt"
     agent.load_state_dict(torch.load(str(path_model), map_location=device))
     agent.eval()
 
-    dmaker = DecisionMaker(0, agent)
     obs = env.reset()
 
     frameSize = (160, 210)
@@ -122,7 +124,7 @@ def record(ep, path):
     out = cv2.VideoWriter(str(path_video), bin_loader, 30, frameSize)
 
     # Avoid beginning steps of the game
-    for i_step in range(AVOIDED_STEPS):
+    for i_step in range(params.AVOIDED_STEPS):
         obs, reward, done, info = env.step(3)
 
     observations = init_obs(env)
@@ -133,13 +135,13 @@ def record(ep, path):
     while True:
         state = preprocess_observation(observations, obs)
         sample = random.random()
-        eps_threshold = EPS_MIN
+        eps_threshold = params.EPS_MIN
         with torch.no_grad():
             q_values = agent(state)
         if sample > eps_threshold:
             action = q_values.max(1)[1].view(1, 1)
         else:
-            random_action = [[random.randrange(N_ACTIONS)]]
+            random_action = [[random.randrange(params.N_ACTIONS)]]
             action = torch.tensor(random_action, device=device, dtype=torch.long)
         # action = agent(state).max(1)[1].view(1, 1)
 

@@ -1,16 +1,8 @@
 from pathlib import Path
 
-ABS_PATH = Path().absolute()
-RESULTS_PATH = ABS_PATH / "results"
+RESULTS_PATH = Path("results").absolute()
 
-
-def create(path):
-    if not (path.exists()):
-        path.mkdir()
-        print('Folder "{}" created.'.format(path))
-
-
-def working_path(isstreaming, offset=0):
+def working_path(isstreaming: bool, offset:int=0):
     if isstreaming:
         working_dir = RESULTS_PATH / f"training-only-stream"
     else:
